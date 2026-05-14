@@ -1,0 +1,5 @@
+Cliente: john puello | Servicio: 1 | Total: $150000
+Cliente: ethan hoyos | Servicio: Gestión de Redes | Total: $315,000
+Cliente: yese montalvo | Servicio: Marketing Digital | Total: $150,000
+Cliente: eduardo | Servicio: Automatización IA | Total: $225,000
+Cliente: Nara | Servicio: Desarrollo Web | Total: $200,000

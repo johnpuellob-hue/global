@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G-Global Studios | Testimonios</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            line-height: 1.6;
+        }
+        header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #39FF14;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #39FF14;
+            text-shadow: 0 0 10px #39FF14;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        nav a:hover {
+            background: #39FF14;
+            color: #000;
+        }
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            background: linear-gradient(180deg, #0a0a0a 0%, #111 100%);
+        }
+        .hero h1 {
+            font-size: 3rem;
+            color: #39FF14;
+            text-shadow: 0 0 20px #39FF14;
+            margin-bottom: 20px;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: #aaa;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .testimonios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 50px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .testimonio-card {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 15px;
+            padding: 30px;
+            transition: 0.3s;
+        }
+        .testimonio-card:hover {
+            border-color: #39FF14;
+            transform: translateY(-5px);
+        }
+        .testimonio-card .estrellas {
+            color: #39FF14;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        .testimonio-card .texto {
+            color: #ccc;
+            font-style: italic;
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+        .cliente {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .cliente .avatar {
+            width: 50px;
+            height: 50px;
+            background: #39FF14;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #000;
+            font-weight: bold;
+        }
+        .cliente .info h4 {
+            color: #39FF14;
+            font-size: 1rem;
+        }
+        .cliente .info p {
+            color: #666;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">G-GLOBAL STUDIOS</div>
+        <nav>
+            <a href="/">Inicio</a>
+            <a href="/servicios">Servicios</a>
+            <a href="/nosotros">Nosotros</a>
+            <a href="/testimonios">Testimonios</a>
+            <a href="/contacto">Contacto</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Testimonios</h1>
+        <p>Lo que dicen nuestros clientes</p>
+    </section>
+
+    <div class="testimonios-grid">
+        <div class="testimonio-card">
+            <div class="estrellas">★★★★★</div>
+            <p class="texto">"Excelente trabajo. Nuestro nuevo sitio web triplicó nuestras ventas en línea. El equipo de G-Global entendió perfectamente nuestra visión."</p>
+            <div class="cliente">
+                <div class="avatar">MR</div>
+                <div class="info">
+                    <h4>María Rodríguez</h4>
+                    <p>Directora, Moda Urbana</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="testimonio-card">
+            <div class="estrellas">★★★★★</div>
+            <p class="texto">"La automatización con IA que implementaron nos ahorró 20 horas semanales de trabajo manual. Inversión que se pagó sola en 2 meses."</p>
+            <div class="cliente">
+                <div class="avatar">JC</div>
+                <div class="info">
+                    <h4>Juan Carlos Mora</h4>
+                    <p>Gerente, Distribuciones JC</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="testimonio-card">
+            <div class="estrellas">★★★★★</div>
+            <p class="texto">"Nuestro crecimiento en redes sociales fue exponencial. Pasamos de 500 a 15.000 seguidores en 6 meses. Equipo profesional y compromiso total."</p>
+            <div class="cliente">
+                <div class="avatar">AP</div>
+                <div class="info">
+                    <h4>Ana Patricia Soto</h4>
+                    <p>CEO, FoodTech Colombia</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="testimonio-card">
+            <div class="estrellas">★★★★★</div>
+            <p class="texto">"Diseñaron nuestra identidad corporativa y quedó perfecta. Captaron la esencia de nuestra marca en cada detalle. Muy recomendados."</p>
+            <div class="cliente">
+                <div class="avatar">LM</div>
+                <div class="info">
+                    <h4>Luis Miguel Vargas</h4>
+                    <p>Fundador, StartUp Innova</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="testimonio-card">
+            <div class="estrellas">★★★★★</div>
+            <p class="texto">"El video corporativo que produjeron superó nuestras expectativas. Calidad cinematográfica a un precio justo. Ahora tenemos un legado visual valioso."</p>
+            <div class="cliente">
+                <div class="avatar">CP</div>
+                <div class="info">
+                    <h4>Carmen Pérez</h4>
+                    <p>Directora, Fundación Arte</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="testimonio-card">
+            <div class="estrellas">★★★★★</div>
+            <p class="texto">"Contratamos el marketing digital y los resultados fueron inmediatos. ROI positivo desde el primer mes. G-Global es nuestro socio estratégico."</p>
+            <div class="cliente">
+                <div class="avatar">DR</div>
+                <div class="info">
+                    <h4>David Romero</h4>
+                    <p>Director Comercial, TecSur</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

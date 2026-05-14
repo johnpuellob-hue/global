@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G-Global Studios | Servicios</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            line-height: 1.6;
+        }
+        header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #39FF14;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #39FF14;
+            text-shadow: 0 0 10px #39FF14;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        nav a:hover {
+            background: #39FF14;
+            color: #000;
+        }
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            background: linear-gradient(180deg, #0a0a0a 0%, #111 100%);
+        }
+        .hero h1 {
+            font-size: 3rem;
+            color: #39FF14;
+            text-shadow: 0 0 20px #39FF14;
+            margin-bottom: 20px;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: #aaa;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .servicios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 50px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .servicio-card {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 15px;
+            padding: 30px;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        .servicio-card:hover {
+            border-color: #39FF14;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(57, 255, 20, 0.2);
+        }
+        .servicio-card .icono {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        .servicio-card h3 {
+            color: #39FF14;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+        .servicio-card p {
+            color: #888;
+            margin-bottom: 15px;
+        }
+        .precio {
+            font-size: 1.5rem;
+            color: #39FF14;
+            font-weight: bold;
+        }
+        .cta-btn {
+            display: inline-block;
+            background: #39FF14;
+            color: #000;
+            padding: 12px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+        .cta-btn:hover {
+            background: #fff;
+            box-shadow: 0 0 20px #fff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">G-GLOBAL STUDIOS</div>
+        <nav>
+            <a href="/">Inicio</a>
+            <a href="/servicios">Servicios</a>
+            <a href="/nosotros">Nosotros</a>
+            <a href="/testimonios">Testimonios</a>
+            <a href="/contacto">Contacto</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Nuestros Servicios</h1>
+        <p>Soluciones tecnológicas integrales para hacer crecer tu negocio</p>
+    </section>
+
+    <div class="servicios-grid">
+        <div class="servicio-card">
+            <div class="icono">🌐</div>
+            <h3>Desarrollo Web</h3>
+            <p>Sitios web profesionales, aplicaciones web y tiendas online con las últimas tecnologías.</p>
+            <div class="precio">Desde $300.000</div>
+            <a href="/cotizar" class="cta-btn">Cotizar</a>
+        </div>
+
+        <div class="servicio-card">
+            <div class="icono">📱</div>
+            <h3>Marketing Digital</h3>
+            <p>Estrategias de marketing online, gestión de redes sociales y campañas publicitarias efectivas.</p>
+            <div class="precio">Desde $150.000</div>
+            <a href="/cotizar" class="cta-btn">Cotizar</a>
+        </div>
+
+        <div class="servicio-card">
+            <div class="icono">🤖</div>
+            <h3>Automatización con IA</h3>
+            <p>Automatización de procesos empresariales usando inteligencia artificial y Python.</p>
+            <div class="precio">Desde $250.000</div>
+            <a href="/cotizar" class="cta-btn">Cotizar</a>
+        </div>
+
+        <div class="servicio-card">
+            <div class="icono">📊</div>
+            <h3>Gestión de Redes</h3>
+            <p>Administración completa de tus redes sociales con contenido optimizado.</p>
+            <div class="precio">Desde $200.000</div>
+            <a href="/cotizar" class="cta-btn">Cotizar</a>
+        </div>
+
+        <div class="servicio-card">
+            <div class="icono">🎨</div>
+            <h3>Diseño Gráfico</h3>
+            <p>Identidad visual, logotipos, banners y material publicitario de alta calidad.</p>
+            <div class="precio">Desde $100.000</div>
+            <a href="/cotizar" class="cta-btn">Cotizar</a>
+        </div>
+
+        <div class="servicio-card">
+            <div class="icono">🎥</div>
+            <h3>Producción Audiovisual</h3>
+            <p>Videos corporativos, contenido para redes y edición profesional.</p>
+            <div class="precio">Desde $180.000</div>
+            <a href="/cotizar" class="cta-btn">Cotizar</a>
+        </div>
+    </div>
+</body>
+</html>

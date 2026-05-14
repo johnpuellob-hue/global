@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G-Global Studios | Inicio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #39FF14;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #39FF14;
+            text-shadow: 0 0 10px #39FF14;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: 0.3s;
+            font-size: 0.9rem;
+        }
+        nav a:hover {
+            background: #39FF14;
+            color: #000;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(180deg, #0a0a0a 0%, #111 100%);
+        }
+        .hero h1 {
+            font-size: 2.5rem;
+            color: #39FF14;
+            text-shadow: 0 0 20px #39FF14;
+            margin-bottom: 15px;
+        }
+        .hero p {
+            font-size: 1.1rem;
+            color: #aaa;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Contenedor principal */
+        .contenedor-principal {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Tarjeta del cotizador */
+        .tarjeta-cotizador {
+            background: #050505;
+            border: 2px solid #39FF14;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(57, 255, 20, 0.3);
+            margin-bottom: 40px;
+        }
+        .tarjeta-cotizador h2 {
+            color: #39FF14;
+            text-align: center;
+            text-shadow: 0 0 10px #39FF14;
+            margin-bottom: 8px;
+            font-size: 1.5rem;
+        }
+        .tarjeta-cotizador .subtitulo {
+            text-align: center;
+            color: #888;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+        }
+
+        /* Formulario */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #111;
+            color: #fff;
+            font-size: 1rem;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #39FF14;
+        }
+        .btn-cotizar {
+            width: 100%;
+            padding: 14px;
+            background: #39FF14;
+            color: #000;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        .btn-cotizar:hover {
+            background: #fff;
+            box-shadow: 0 0 20px #fff;
+        }
+
+        /* Sección Proyectos */
+        .seccion-proyectos {
+            padding: 20px 0;
+        }
+        .seccion-proyectos h2 {
+            text-align: center;
+            color: #39FF14;
+            text-shadow: 0 0 10px #39FF14;
+            margin-bottom: 25px;
+            font-size: 1.5rem;
+        }
+        .proyecto-card {
+            background: #111;
+            border: 2px solid #39FF14;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+        .proyecto-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 25px rgba(57, 255, 20, 0.4);
+        }
+        .proyecto-card .icono {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .proyecto-card h3 {
+            color: #39FF14;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        .proyecto-card p {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            border-top: 1px solid #222;
+            color: #666;
+            font-size: 0.85rem;
+        }
+        footer a {
+            color: #39FF14;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">G-GLOBAL STUDIOS</div>
+        <nav>
+            <a href="/">Inicio</a>
+            <a href="/servicios">Servicios</a>
+            <a href="/nosotros">Nosotros</a>
+            <a href="/testimonios">Testimonios</a>
+            <a href="/contacto">Contacto</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>G-GLOBAL STUDIOS</h1>
+        <p>Soluciones tecnológicas para hacer crecer tu negocio</p>
+    </section>
+
+    <div class="contenedor-principal">
+        <!-- Cotizador -->
+        <div class="tarjeta-cotizador">
+            <h2>Genera tu Cotización</h2>
+            <p class="subtitulo">Con inteligencia artificial</p>
+            
+            <form action="/cotizar" method="POST">
+                <div class="form-group">
+                    <label>Nombre del Cliente</label>
+                    <input type="text" name="nombre" placeholder="Tu nombre" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Servicio</label>
+                    <select id="servicio" name="servicio" onchange="calcularPrecio()">
+                        <option value="">Selecciona un servicio</option>
+                        <option value="Desarrollo Web">Desarrollo Web</option>
+                        <option value="Marketing Digital">Marketing Digital</option>
+                        <option value="Automatización">Automatización con Python</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Precio</label>
+                    <input type="text" id="total" name="total" placeholder="Precio" readonly style="background: #0a0a0a;">
+                </div>
+
+                <div class="form-group">
+                    <label>Referido</label>
+                    <select name="referido">
+                        <option value="N">No soy referido</option>
+                        <option value="S">Soy referido (10% Desc)</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-cotizar">COTIZAR CON IA</button>
+            </form>
+        </div>
+
+        <!-- Proyectos -->
+        <div class="seccion-proyectos">
+            <h2> Nuestros Projetos</h2>
+            
+            <div class="proyecto-card">
+                <div class="icono">📸</div>
+                <h3>Fotografía Profesional</h3>
+                <p>Captura de eventos y retrato</p>
+            </div>
+
+            <div class="proyecto-card">
+                <div class="icono">💻</div>
+                <h3>Sistemas Web</h3>
+                <p>Desarrollo con Python y Flask</p>
+            </div>
+
+            <div class="proyecto-card">
+                <div class="icono">🎥</div>
+                <h3>Edición de Video</h3>
+                <p>Contenido para redes sociales</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 G-Global Studios | <a href="/contacto">Contacto</a></p>
+    </footer>
+
+    <script>
+        function calcularPrecio() {
+            const precios = {
+                "Desarrollo Web": "$300.000",
+                "Marketing Digital": "$150.000",
+                "Automatización": "$250.000"
+            };
+            const servicio = document.getElementById("servicio").value;
+            document.getElementById("total").value = precios[servicio] || "";
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G-Global Studios | Nosotros</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            line-height: 1.6;
+        }
+        header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #39FF14;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #39FF14;
+            text-shadow: 0 0 10px #39FF14;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        nav a:hover {
+            background: #39FF14;
+            color: #000;
+        }
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            background: linear-gradient(180deg, #0a0a0a 0%, #111 100%);
+        }
+        .hero h1 {
+            font-size: 3rem;
+            color: #39FF14;
+            text-shadow: 0 0 20px #39FF14;
+            margin-bottom: 20px;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: #aaa;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .contenido {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 50px 20px;
+        }
+        .mision-vision {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 50px;
+        }
+        .tarjeta {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 15px;
+            padding: 30px;
+        }
+        .tarjeta h3 {
+            color: #39FF14;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        .tarjeta p {
+            color: #888;
+        }
+        .valores {
+            margin-top: 50px;
+        }
+        .valores h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #39FF14;
+        }
+        .valores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .valor-card {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        .valor-card .icono {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .valor-card h4 {
+            color: #39FF14;
+            margin-bottom: 10px;
+        }
+        .valor-card p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .equipo {
+            margin-top: 50px;
+        }
+        .equipo h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #39FF14;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">G-GLOBAL STUDIOS</div>
+        <nav>
+            <a href="/">Inicio</a>
+            <a href="/servicios">Servicios</a>
+            <a href="/nosotros">Nosotros</a>
+            <a href="/testimonios">Testimonios</a>
+            <a href="/contacto">Contacto</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Acerca de Nosotros</h1>
+        <p>Innovación tecnológica al servicio de tu éxito</p>
+    </section>
+
+    <div class="contenido">
+        <div class="mision-vision">
+            <div class="tarjeta">
+                <h3>🎯 Nuestra Misión</h3>
+                <p>Transformar negocios mediante soluciones tecnológicas innovadoras, democratizando el acceso a herramientas de inteligencia artificial y desarrollo web de alta calidad para empresas de todos los tamaños.</p>
+            </div>
+            <div class="tarjeta">
+                <h3>🔭 Nuestra Visión</h3>
+                <p>Ser líderes en innovación digital en Latinoamérica, estableciendo nuevos estándares en la industria tecnológica y siendo el socio estratégico preferido por empresas que buscan crecimiento digital sostenible.</p>
+            </div>
+        </div>
+
+        <div class="valores">
+            <h2>Nuestros Valores</h2>
+            <div class="valores-grid">
+                <div class="valor-card">
+                    <div class="icono">💡</div>
+                    <h4>Innovación</h4>
+                    <p>Siempre buscamos nuevas soluciones</p>
+                </div>
+                <div class="valor-card">
+                    <div class="icono">🤝</div>
+                    <h4>Compromiso</h4>
+                    <p>Tu éxito es nuestro objetivo</p>
+                </div>
+                <div class="valor-card">
+                    <div class="icono">⚡</div>
+                    <h4>Velocidad</h4>
+                    <p>Entregas puntuales siempre</p>
+                </div>
+                <div class="valor-card">
+                    <div class="icono">🎯</div>
+                    <h4>Calidad</h4>
+                    <p>Excedemos expectativas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
