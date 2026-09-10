@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mensajes | G-Global Studios</title>
+    <style>
+        body { background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 50px; }
+        h1 { color: #39FF14; text-shadow: 0 0 15px #39FF14; text-transform: uppercase; }
+        p.sub { color: #888; margin-bottom: 25px; }
+        table { border-collapse: collapse; width: 90%; max-width: 1000px; border: 2px solid #39FF14; box-shadow: 0 0 20px #39FF14; background: #050505; }
+        th, td { border: 1px solid #333; padding: 12px; text-align: left; vertical-align: top; }
+        th { background: #111; color: #39FF14; text-transform: uppercase; letter-spacing: 1px; }
+        tr:hover { background: #1a1a1a; }
+        .btn-volver { margin-top: 30px; padding: 10px 20px; border: 1px solid #39FF14; color: #39FF14; text-decoration: none; border-radius: 5px; }
+        .btn-volver:hover { background: #39FF14; color: #000; }
+    </style>
+</head>
+<body>
+    <h1>📩 Mensajes de Contacto</h1>
+    <p class="sub">Guardados en <code>estudio_global.db</code> · tabla <code>mensajes</code> · {{ registros|length }} registro(s)</p>
+    <table>
+        <thead>
+            <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Servicio</th><th>Mensaje</th></tr>
+        </thead>
+        <tbody>
+            {% for item in registros %}
+            <tr>
+                <td>{{ item[0] }}</td><td>{{ item[1] }}</td><td>{{ item[2] }}</td>
+                <td>{{ item[3] }}</td><td>{{ item[4] }}</td><td>{{ item[5] }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" style="text-align:center;color:#888;">Aún no hay mensajes.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="/" class="btn-volver">← Volver al inicio</a>
+</body>
+</html>

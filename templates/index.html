@@ -223,11 +223,14 @@
 
                 <div class="form-group">
                     <label>Servicio</label>
-                    <select id="servicio" name="servicio" onchange="calcularPrecio()">
+                    <select id="servicio" name="servicio_id" onchange="calcularPrecio()">
                         <option value="">Selecciona un servicio</option>
-                        <option value="Desarrollo Web">Desarrollo Web</option>
-                        <option value="Marketing Digital">Marketing Digital</option>
-                        <option value="Automatización">Automatización con Python</option>
+                        <option value="desarrollo_web">Desarrollo Web</option>
+                        <option value="marketing_digital">Marketing Digital</option>
+                        <option value="automatizacion_ia">Automatización con Python</option>
+                        <option value="gestion_redes">Gestión de Redes</option>
+                        <option value="diseno_grafico">Diseño Gráfico</option>
+                        <option value="produccion_audiovisual">Producción Audiovisual</option>
                     </select>
                 </div>
 
@@ -279,9 +282,12 @@
     <script>
         function calcularPrecio() {
             const precios = {
-                "Desarrollo Web": "$300.000",
-                "Marketing Digital": "$150.000",
-                "Automatización": "$250.000"
+                "desarrollo_web": "$300.000",
+                "marketing_digital": "$150.000",
+                "automatizacion_ia": "$250.000",
+                "gestion_redes": "$200.000",
+                "diseno_grafico": "$100.000",
+                "produccion_audiovisual": "$180.000"
             };
             const servicio = document.getElementById("servicio").value;
             document.getElementById("total").value = precios[servicio] || "";

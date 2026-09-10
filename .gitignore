@@ -1,0 +1,13 @@
+# SQLite local / reportes generados
+*.db
+*.db-journal
+*.sqlite3
+Reporte_*.xlsx
+*.xlsx
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
