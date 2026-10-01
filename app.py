@@ -4,12 +4,22 @@ import random
 import sqlite3
 
 import pandas as pd
-from flask import Flask, redirect, render_template, request, send_file
+from flask import Flask, redirect, render_template, request, send_file, flash, url_for, session
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'g-global-studios-secret-key-change-in-production')
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "estudio_global.db")
+
+# Flask-Login setup
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Por favor inicia sesión para acceder a esta página.'
+login_manager.login_message_category = 'info'
 
 # Catálogo único de servicios (clave -> (nombre bonito, precio))
 SERVICIOS = {
@@ -53,27 +63,99 @@ def normalizar_servicio(valor):
 
 def get_db():
     conexion = sqlite3.connect(DB_PATH)
+    conexion.row_factory = sqlite3.Row
     return conexion
 
 
-# Función para crear la base de datos (ventas + mensajes)
+# Función para crear la base de datos (ventas + mensajes + usuarios)
 def crear_db():
     conexion = get_db()
     cursor = conexion.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios
+                      (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                       nombre TEXT NOT NULL,
+                       email TEXT UNIQUE NOT NULL,
+                       password_hash TEXT NOT NULL,
+                       telefono TEXT,
+                       fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     cursor.execute('''CREATE TABLE IF NOT EXISTS ventas
                       (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                       user_id INTEGER,
                        nombre TEXT,
                        servicio TEXT,
-                       total REAL)''')
+                       total REAL,
+                       fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                       FOREIGN KEY (user_id) REFERENCES usuarios (id))''')
     cursor.execute('''CREATE TABLE IF NOT EXISTS mensajes
                       (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                       user_id INTEGER,
                        nombre TEXT, email TEXT, telefono TEXT,
-                       servicio TEXT, mensaje TEXT)''')
+                       servicio TEXT, mensaje TEXT,
+                       fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                       FOREIGN KEY (user_id) REFERENCES usuarios (id))''')
     conexion.commit()
     conexion.close()
 
 
 crear_db()
+
+
+# User model para Flask-Login
+class User(UserMixin):
+    def __init__(self, id, nombre, email, password_hash, telefono=None):
+        self.id = id
+        self.nombre = nombre
+        self.email = email
+        self.password_hash = password_hash
+        self.telefono = telefono
+
+    @staticmethod
+    def get_by_id(user_id):
+        conexion = get_db()
+        cursor = conexion.cursor()
+        cursor.execute("SELECT * FROM usuarios WHERE id = ?", (user_id,))
+        row = cursor.fetchone()
+        conexion.close()
+        if row:
+            return User(row['id'], row['nombre'], row['email'], row['password_hash'], row['telefono'])
+        return None
+
+    @staticmethod
+    def get_by_email(email):
+        conexion = get_db()
+        cursor = conexion.cursor()
+        cursor.execute("SELECT * FROM usuarios WHERE email = ?", (email,))
+        row = cursor.fetchone()
+        conexion.close()
+        if row:
+            return User(row['id'], row['nombre'], row['email'], row['password_hash'], row['telefono'])
+        return None
+
+    @staticmethod
+    def create(nombre, email, password, telefono=None):
+        password_hash = generate_password_hash(password)
+        conexion = get_db()
+        cursor = conexion.cursor()
+        try:
+            cursor.execute(
+                "INSERT INTO usuarios (nombre, email, password_hash, telefono) VALUES (?, ?, ?, ?)",
+                (nombre, email, password_hash, telefono)
+            )
+            conexion.commit()
+            user_id = cursor.lastrowid
+            conexion.close()
+            return User.get_by_id(user_id)
+        except sqlite3.IntegrityError:
+            conexion.close()
+            return None
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get_by_id(int(user_id))
 
 
 def generar_frase_ia(nombre, nombre_servicio):
@@ -128,6 +210,75 @@ def contacto():
     return render_template('contacto.html')
 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('inicio'))
+    
+    if request.method == 'POST':
+        email = (request.form.get('email') or '').strip().lower()
+        password = request.form.get('password') or ''
+        remember = request.form.get('remember') == 'on'
+        
+        if not email or not password:
+            flash('Email y contraseña son obligatorios.', 'error')
+            return render_template('login.html')
+        
+        user = User.get_by_email(email)
+        if user and user.check_password(password):
+            login_user(user, remember=remember)
+            flash(f'¡Bienvenido de nuevo, {user.nombre}!', 'success')
+            next_page = request.args.get('next')
+            return redirect(next_page or url_for('inicio'))
+        else:
+            flash('Email o contraseña incorrectos.', 'error')
+    
+    return render_template('login.html')
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('inicio'))
+    
+    if request.method == 'POST':
+        nombre = (request.form.get('nombre') or '').strip()
+        email = (request.form.get('email') or '').strip().lower()
+        password = request.form.get('password') or ''
+        password2 = request.form.get('password2') or ''
+        telefono = (request.form.get('telefono') or '').strip()
+        
+        if not nombre or not email or not password:
+            flash('Todos los campos son obligatorios.', 'error')
+            return render_template('register.html')
+        
+        if password != password2:
+            flash('Las contraseñas no coinciden.', 'error')
+            return render_template('register.html')
+        
+        if len(password) < 6:
+            flash('La contraseña debe tener al menos 6 caracteres.', 'error')
+            return render_template('register.html')
+        
+        user = User.create(nombre, email, password, telefono)
+        if user:
+            login_user(user)
+            flash(f'¡Cuenta creada exitosamente! Bienvenido, {nombre}.', 'success')
+            return redirect(url_for('inicio'))
+        else:
+            flash('Este email ya está registrado.', 'error')
+    
+    return render_template('register.html')
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('Has cerrado sesión correctamente.', 'info')
+    return redirect(url_for('inicio'))
+
+
 @app.route('/enviar-mensaje', methods=['POST'])
 def enviar_mensaje():
     nombre = (request.form.get('nombre') or '').strip()
@@ -135,26 +286,31 @@ def enviar_mensaje():
     telefono = (request.form.get('telefono') or '').strip()
     servicio = (request.form.get('servicio') or '').strip()
     mensaje = (request.form.get('mensaje') or '').strip()
-
+    
     if not nombre or not email or not mensaje:
         return "Faltan campos obligatorios (nombre, email, mensaje).", 400
-
+    
+    user_id = current_user.id if current_user.is_authenticated else None
+    
     try:
         conexion = get_db()
         cursor = conexion.cursor()
         cursor.execute('''CREATE TABLE IF NOT EXISTS mensajes
                           (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                           user_id INTEGER,
                            nombre TEXT, email TEXT, telefono TEXT,
-                           servicio TEXT, mensaje TEXT)''')
+                           servicio TEXT, mensaje TEXT,
+                           fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                           FOREIGN KEY (user_id) REFERENCES usuarios (id))''')
         cursor.execute(
-            "INSERT INTO mensajes (nombre, email, telefono, servicio, mensaje) VALUES (?, ?, ?, ?, ?)",
-            (nombre, email, telefono, servicio, mensaje))
+            "INSERT INTO mensajes (user_id, nombre, email, telefono, servicio, mensaje) VALUES (?, ?, ?, ?, ?, ?)",
+            (user_id, nombre, email, telefono, servicio, mensaje))
         conexion.commit()
         conexion.close()
     except Exception as e:
         print(f"Error: {e}")
         return "Error guardando el mensaje, intenta de nuevo.", 500
-
+    
     nombre_seguro = html.escape(nombre)
     return f"""
     <html>
@@ -179,41 +335,41 @@ def enviar_mensaje():
 
 
 @app.route('/cotizar', methods=['GET', 'POST'])
+@login_required
 def cotizar():
     if request.method == 'GET':
-        # Los botones de servicios.html apuntaban aquí; el formulario vive en /
         return redirect('/')
-
+    
     nombre = (request.form.get('nombre') or '').strip()
     # Acepta el formato nuevo (servicio_id) y el antiguo (servicio)
     servicio_raw = request.form.get('servicio_id') or request.form.get('servicio') or ''
     es_referido = request.form.get('referido')
-
+    
     if not nombre:
         return "El nombre es obligatorio.", 400
-
+    
     _clave, nombre_servicio_limpio, subtotal = normalizar_servicio(servicio_raw)
     descuento = subtotal * 0.10 if es_referido == "S" else 0
     total = subtotal - descuento
-
+    
     # Guardar en base de datos
     try:
         conexion = get_db()
         cursor = conexion.cursor()
-        cursor.execute("INSERT INTO ventas (nombre, servicio, total) VALUES (?, ?, ?)",
-                       (nombre, nombre_servicio_limpio, total))
+        cursor.execute("INSERT INTO ventas (user_id, nombre, servicio, total) VALUES (?, ?, ?, ?)",
+                       (current_user.id, nombre, nombre_servicio_limpio, total))
         conexion.commit()
         conexion.close()
     except Exception as e:
         print(f"Error al guardar en DB: {e}")
         return "Error guardando la cotización.", 500
-
+    
     frase_ia = generar_frase_ia(nombre, nombre_servicio_limpio)
-
+    
     nombre_seguro = html.escape(nombre.upper())
     servicio_seguro = html.escape(nombre_servicio_limpio)
     frase_segura = html.escape(frase_ia)
-
+    
     return f"""
     <html>
     <head>
@@ -244,40 +400,45 @@ def cotizar():
 
 
 @app.route('/reportes')
+@login_required
 def reportes():
     conexion = get_db()
     cursor = conexion.cursor()
-    cursor.execute("SELECT id, nombre, servicio, total FROM ventas")
+    # Solo mostrar cotizaciones del usuario actual
+    cursor.execute("SELECT id, nombre, servicio, total, fecha FROM ventas WHERE user_id = ? ORDER BY fecha DESC", (current_user.id,))
     datos_ventas = cursor.fetchall()
     conexion.close()
     return render_template('reportes.html', registros=datos_ventas)
 
 
 @app.route('/mensajes')
+@login_required
 def ver_mensajes():
     """Vista admin simple para verificar los mensajes de contacto guardados."""
     conexion = get_db()
     cursor = conexion.cursor()
-    cursor.execute("SELECT id, nombre, email, telefono, servicio, mensaje FROM mensajes ORDER BY id DESC")
+    cursor.execute("SELECT id, nombre, email, telefono, servicio, mensaje, fecha FROM mensajes WHERE user_id = ? ORDER BY fecha DESC", (current_user.id,))
     datos = cursor.fetchall()
     conexion.close()
     return render_template('mensajes.html', registros=datos)
 
 
 @app.route('/eliminar/<int:id>')
+@login_required
 def eliminar(id):
     conexion = get_db()
     cursor = conexion.cursor()
-    cursor.execute("DELETE FROM ventas WHERE id = ?", (id,))
+    cursor.execute("DELETE FROM ventas WHERE id = ? AND user_id = ?", (id, current_user.id))
     conexion.commit()
     conexion.close()
     return redirect('/reportes')
 
 
 @app.route('/descargar_excel')
+@login_required
 def descargar_excel():
     conexion = get_db()
-    df = pd.read_sql_query("SELECT nombre, servicio, total FROM ventas", conexion)
+    df = pd.read_sql_query("SELECT nombre, servicio, total, fecha FROM ventas WHERE user_id = ?", conexion, params=(current_user.id,))
     conexion.close()
     nombre_archivo = os.path.join(BASE_DIR, "Reporte_G-Global_Studios.xlsx")
     df.to_excel(nombre_archivo, index=False)
