@@ -23,30 +23,43 @@ login_manager.login_message_category = 'info'
 
 # Catálogo único de servicios (clave -> (nombre bonito, precio))
 SERVICIOS = {
-    "marketing_digital": ("Marketing Digital", 150000),
     "desarrollo_web": ("Desarrollo Web", 300000),
-    "gestion_redes": ("Gestión de Redes", 200000),
     "automatizacion_ia": ("Automatización con IA", 250000),
-    "diseno_grafico": ("Diseño Gráfico", 100000),
-    "produccion_audiovisual": ("Producción Audiovisual", 180000),
+    "gestion_datos": ("Gestión de Datos", 200000),
+}
+
+# Sub-servicios por categoría
+SUB_SERVICIOS = {
+    "desarrollo_web": [
+        ("creacion_sitio", "Creación de sitio web desde cero", 300000),
+        ("mantenimiento_soporte", "Mantenimiento y soporte mensual", 150000),
+        ("actualizacion_codigo", "Actualización y mejoras de código", 200000),
+    ],
+    "automatizacion_ia": [
+        ("automatizacion_procesos", "Automatización de procesos empresariales", 250000),
+        ("chatbots_asistentes", "Chatbots y asistentes virtuales IA", 200000),
+        ("analisis_datos_ia", "Análisis de datos con IA/ML", 300000),
+    ],
+    "gestion_datos": [
+        ("migracion_datos", "Migración y limpieza de datos", 180000),
+        ("dashboards_reportes", "Dashboards y reportes automatizados", 220000),
+        ("bases_datos_admin", "Administración de bases de datos", 200000),
+    ],
 }
 
 # Alias para aceptar tanto los values nuevos (claves) como los textos
 # que enviaba el formulario antiguo de index.html
 ALIASES = {
-    "marketing digital": "marketing_digital",
     "desarrollo web": "desarrollo_web",
-    "gestión de redes": "gestion_redes",
-    "gestion de redes": "gestion_redes",
     "automatización": "automatizacion_ia",
     "automatizacion": "automatizacion_ia",
     "automatización con ia": "automatizacion_ia",
     "automatización con python": "automatizacion_ia",
     "automatizacion con python": "automatizacion_ia",
-    "diseño gráfico": "diseno_grafico",
-    "diseno grafico": "diseno_grafico",
-    "producción audiovisual": "produccion_audiovisual",
-    "produccion audiovisual": "produccion_audiovisual",
+    "gestión de datos": "gestion_datos",
+    "gestion de datos": "gestion_datos",
+    "gestión de redes": "gestion_datos",
+    "gestion de redes": "gestion_datos",
 }
 # Las propias claves también son válidas
 for _k in SERVICIOS:
@@ -58,6 +71,13 @@ def normalizar_servicio(valor):
     clave = ALIASES.get(clave, clave)
     if clave in SERVICIOS:
         return clave, SERVICIOS[clave][0], SERVICIOS[clave][1]
+    
+    # Buscar en sub-servicios
+    for cat, subs in SUB_SERVICIOS.items():
+        for sub_clave, sub_nombre, sub_precio in subs:
+            if clave == sub_clave or clave == sub_nombre.lower():
+                return f"{cat}:{sub_clave}", sub_nombre, sub_precio
+    
     return None, "Servicio General", 0
 
 
@@ -83,6 +103,7 @@ def crear_db():
                        user_id INTEGER,
                        nombre TEXT,
                        servicio TEXT,
+                       sub_servicio TEXT,
                        total REAL,
                        fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        FOREIGN KEY (user_id) REFERENCES usuarios (id))''')
@@ -93,6 +114,13 @@ def crear_db():
                        servicio TEXT, mensaje TEXT,
                        fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        FOREIGN KEY (user_id) REFERENCES usuarios (id))''')
+    
+    # Migración: agregar columna sub_servicio si no existe
+    try:
+        cursor.execute("ALTER TABLE ventas ADD COLUMN sub_servicio TEXT")
+    except sqlite3.OperationalError:
+        pass  # Ya existe
+    
     conexion.commit()
     conexion.close()
 
@@ -340,15 +368,24 @@ def cotizar():
     if request.method == 'GET':
         return redirect('/')
     
-    nombre = (request.form.get('nombre') or '').strip()
+    # Usar nombre del usuario logueado automáticamente
+    nombre = current_user.nombre
     # Acepta el formato nuevo (servicio_id) y el antiguo (servicio)
     servicio_raw = request.form.get('servicio_id') or request.form.get('servicio') or ''
+    sub_servicio_raw = request.form.get('sub_servicio') or ''
     es_referido = request.form.get('referido')
     
-    if not nombre:
-        return "El nombre es obligatorio.", 400
-    
     _clave, nombre_servicio_limpio, subtotal = normalizar_servicio(servicio_raw)
+    
+    # Si es un sub-servicio, extraer el nombre del sub-servicio
+    sub_servicio_nombre = None
+    if _clave and ':' in _clave:
+        cat, sub_clave = _clave.split(':', 1)
+        for sub in SUB_SERVICIOS.get(cat, []):
+            if sub[0] == sub_clave:
+                sub_servicio_nombre = sub[1]
+                break
+    
     descuento = subtotal * 0.10 if es_referido == "S" else 0
     total = subtotal - descuento
     
@@ -356,8 +393,8 @@ def cotizar():
     try:
         conexion = get_db()
         cursor = conexion.cursor()
-        cursor.execute("INSERT INTO ventas (user_id, nombre, servicio, total) VALUES (?, ?, ?, ?)",
-                       (current_user.id, nombre, nombre_servicio_limpio, total))
+        cursor.execute("INSERT INTO ventas (user_id, nombre, servicio, sub_servicio, total) VALUES (?, ?, ?, ?, ?)",
+                       (current_user.id, nombre, nombre_servicio_limpio, sub_servicio_nombre, total))
         conexion.commit()
         conexion.close()
     except Exception as e:
@@ -368,6 +405,7 @@ def cotizar():
     
     nombre_seguro = html.escape(nombre.upper())
     servicio_seguro = html.escape(nombre_servicio_limpio)
+    sub_servicio_seguro = html.escape(sub_servicio_nombre) if sub_servicio_nombre else ""
     frase_segura = html.escape(frase_ia)
     
     return f"""
@@ -389,6 +427,7 @@ def cotizar():
             <h2 style="margin:0;">{nombre_seguro}</h2>
             <div class="frase">"{frase_segura}"</div>
             <p>Servicio: {servicio_seguro}</p>
+            {f'<p>Sub-servicio: {sub_servicio_seguro}</p>' if sub_servicio_seguro else ''}
             <p>Subtotal: ${subtotal:,.0f}</p>
             <p style="color: #ff4444;">Descuento: -${descuento:,.0f}</p>
             <div class="total">TOTAL A PAGAR: ${total:,.0f}</div>
@@ -405,7 +444,7 @@ def reportes():
     conexion = get_db()
     cursor = conexion.cursor()
     # Solo mostrar cotizaciones del usuario actual
-    cursor.execute("SELECT id, nombre, servicio, total, fecha FROM ventas WHERE user_id = ? ORDER BY fecha DESC", (current_user.id,))
+    cursor.execute("SELECT id, nombre, servicio, sub_servicio, total, fecha FROM ventas WHERE user_id = ? ORDER BY fecha DESC", (current_user.id,))
     datos_ventas = cursor.fetchall()
     conexion.close()
     return render_template('reportes.html', registros=datos_ventas)
@@ -438,7 +477,7 @@ def eliminar(id):
 @login_required
 def descargar_excel():
     conexion = get_db()
-    df = pd.read_sql_query("SELECT nombre, servicio, total, fecha FROM ventas WHERE user_id = ?", conexion, params=(current_user.id,))
+    df = pd.read_sql_query("SELECT nombre, servicio, sub_servicio, total, fecha FROM ventas WHERE user_id = ?", conexion, params=(current_user.id,))
     conexion.close()
     nombre_archivo = os.path.join(BASE_DIR, "Reporte_G-Global_Studios.xlsx")
     df.to_excel(nombre_archivo, index=False)

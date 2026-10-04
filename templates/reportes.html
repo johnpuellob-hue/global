@@ -60,6 +60,7 @@
                     <th>Fecha</th>
                     <th>Cliente</th>
                     <th>Servicio</th>
+                    <th>Sub-servicio</th>
                     <th>Total ($)</th>
                     <th>Acciones</th>
                 </tr>
@@ -70,7 +71,8 @@
                     <td>{{ item[4] }}</td>
                     <td>{{ item[1] }}</td>
                     <td>{{ item[2] }}</td>
-                    <td>${{ item[3] }}</td>
+                    <td>{{ item[3] if item[3] else '-' }}</td>
+                    <td>${{ item[5] }}</td>
                     <td style="text-align: center;">
                         <a href="/eliminar/{{ item[0] }}" class="btn btn-danger" onclick="return confirm('¿Eliminar este registro?')">🗑️</a>
                     </td>

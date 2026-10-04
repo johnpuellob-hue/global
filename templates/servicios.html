@@ -59,44 +59,65 @@
             max-width: 600px;
             margin: 0 auto;
         }
-        .servicios-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            padding: 50px;
+        .servicios-container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 50px;
         }
-        .servicio-card {
+        .servicio-principal {
+            margin-bottom: 60px;
+        }
+        .servicio-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #39FF14;
+        }
+        .servicio-header .icono {
+            font-size: 3rem;
+        }
+        .servicio-header h2 {
+            color: #39FF14;
+            font-size: 2rem;
+        }
+        .servicio-header .precio-base {
+            color: #888;
+            font-size: 1rem;
+        }
+        .sub-servicios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .sub-servicio-card {
             background: #111;
             border: 1px solid #222;
             border-radius: 15px;
-            padding: 30px;
+            padding: 25px;
             transition: 0.3s;
-            cursor: pointer;
         }
-        .servicio-card:hover {
+        .sub-servicio-card:hover {
             border-color: #39FF14;
-            transform: translateY(-5px);
+            transform: translateY(-3px);
             box-shadow: 0 10px 30px rgba(57, 255, 20, 0.2);
         }
-        .servicio-card .icono {
-            font-size: 3rem;
-            margin-bottom: 15px;
-        }
-        .servicio-card h3 {
+        .sub-servicio-card h3 {
             color: #39FF14;
             margin-bottom: 10px;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
         }
-        .servicio-card p {
+        .sub-servicio-card p {
             color: #888;
             margin-bottom: 15px;
+            line-height: 1.6;
         }
-        .precio {
-            font-size: 1.5rem;
+        .sub-precio {
+            font-size: 1.3rem;
             color: #39FF14;
             font-weight: bold;
+            margin-bottom: 15px;
         }
         .cta-btn {
             display: inline-block;
@@ -106,12 +127,16 @@
             border-radius: 8px;
             text-decoration: none;
             font-weight: bold;
-            margin-top: 10px;
             transition: 0.3s;
         }
         .cta-btn:hover {
             background: #fff;
             box-shadow: 0 0 20px #fff;
+        }
+        .cta-btn:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -136,57 +161,151 @@
 
     <section class="hero">
         <h1>Nuestros Servicios</h1>
-        <p>Soluciones tecnológicas integrales para hacer crecer tu negocio</p>
+        <p>Tres pilares tecnológicos para transformar tu negocio</p>
     </section>
 
-    <div class="servicios-grid">
-        <div class="servicio-card">
-            <div class="icono">🌐</div>
-            <h3>Desarrollo Web</h3>
-            <p>Sitios web profesionales, aplicaciones web y tiendas online con las últimas tecnologías.</p>
-            <div class="precio">Desde $300.000</div>
-            <a href="/" class="cta-btn">Cotizar</a>
+    <div class="servicios-container">
+        <!-- Desarrollo Web -->
+        <div class="servicio-principal">
+            <div class="servicio-header">
+                <div class="icono">🌐</div>
+                <div>
+                    <h2>Desarrollo Web</h2>
+                    <p class="precio-base">Soluciones web a medida con tecnologías modernas</p>
+                </div>
+            </div>
+            <div class="sub-servicios-grid">
+                <div class="sub-servicio-card">
+                    <h3>🌐 Creación de sitio web desde cero</h3>
+                    <p>Diseño y desarrollo completo de sitios web modernos, responsivos y optimizados. Incluye: arquitectura, frontend (React/Vue), backend (Python/Node), base de datos, deploy y testing.</p>
+                    <div class="sub-precio">Desde $300.000</div>
+                    {% if current_user.is_authenticated %}
+                        <a href="/" class="cta-btn" onclick="cotizarRapido('desarrollo_web', 'creacion_sitio')">Cotizar</a>
+                    {% else %}
+                        <a href="/login?next=/" class="cta-btn">Inicia sesión para cotizar</a>
+                    {% endif %}
+                </div>
+
+                <div class="sub-servicio-card">
+                    <h3>🔧 Mantenimiento y soporte mensual</h3>
+                    <p>Soporte técnico continuo: actualizaciones de seguridad, monitoreo de uptime, backups automáticos, corrección de bugs, optimización de rendimiento y consultoría técnica prioritaria.</p>
+                    <div class="sub-precio">$150.000 / mes</div>
+                    {% if current_user.is_authenticated %}
+                        <a href="/" class="cta-btn" onclick="cotizarRapido('desarrollo_web', 'mantenimiento_soporte')">Cotizar</a>
+                    {% else %}
+                        <a href="/login?next=/" class="cta-btn">Inicia sesión para cotizar</a>
+                    {% endif %}
+                </div>
+
+                <div class="sub-servicio-card">
+                    <h3>🔄 Actualización y mejoras de código</h3>
+                    <p>Refactoring, migración a nuevas tecnologías, optimización de performance, implementación de nuevas features, code review y deuda técnica. Ideal para proyectos legacy.</p>
+                    <div class="sub-precio">Desde $200.000</div>
+                    {% if current_user.is_authenticated %}
+                        <a href="/" class="cta-btn" onclick="cotizarRapido('desarrollo_web', 'actualizacion_codigo')">Cotizar</a>
+                    {% else %}
+                        <a href="/login?next=/" class="cta-btn">Inicia sesión para cotizar</a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
 
-        <div class="servicio-card">
-            <div class="icono">📱</div>
-            <h3>Marketing Digital</h3>
-            <p>Estrategias de marketing online, gestión de redes sociales y campañas publicitarias efectivas.</p>
-            <div class="precio">Desde $150.000</div>
-            <a href="/" class="cta-btn">Cotizar</a>
+        <!-- Automatización con IA -->
+        <div class="servicio-principal">
+            <div class="servicio-header">
+                <div class="icono">🤖</div>
+                <div>
+                    <h2>Automatización con IA</h2>
+                    <p class="precio-base">Inteligencia artificial para optimizar y escalar tus procesos</p>
+                </div>
+            </div>
+            <div class="sub-servicios-grid">
+                <div class="sub-servicio-card">
+                    <h3>⚙️ Automatización de procesos empresariales</h3>
+                    <p>Identificamos tareas repetitivas y las automatizamos con Python + IA: procesamiento de documentos, flujos de trabajo, integración de APIs, RPA, web scraping inteligente y reportes automáticos.</p>
+                    <div class="sub-precio">Desde $250.000</div>
+                    {% if current_user.is_authenticated %}
+                        <a href="/" class="cta-btn" onclick="cotizarRapido('automatizacion_ia', 'automatizacion_procesos')">Cotizar</a>
+                    {% else %}
+                        <a href="/login?next=/" class="cta-btn">Inicia sesión para cotizar</a>
+                    {% endif %}
+                </div>
+
+                <div class="sub-servicio-card">
+                    <h3>💬 Chatbots y asistentes virtuales IA</h3>
+                    <p>Desarrollo de chatbots conversacionales con GPT/Claude: atención al cliente 24/7, calificador de leads, asistente interno, integración WhatsApp/Slack/Teams, base de conocimiento propia.</p>
+                    <div class="sub-precio">Desde $200.000</div>
+                    {% if current_user.is_authenticated %}
+                        <a href="/" class="cta-btn" onclick="cotizarRapido('automatizacion_ia', 'chatbots_asistentes')">Cotizar</a>
+                    {% else %}
+                        <a href="/login?next=/" class="cta-btn">Inicia sesión para cotizar</a>
+                    {% endif %}
+                </div>
+
+                <div class="sub-servicio-card">
+                    <h3>📈 Análisis de datos con IA/ML</h3>
+                    <p>Modelos predictivos, detección de anomalías, segmentación de clientes, forecasting, NLP para análisis de texto, computer vision, MLOps y despliegue de modelos en producción.</p>
+                    <div class="sub-precio">Desde $300.000</div>
+                    {% if current_user.is_authenticated %}
+                        <a href="/" class="cta-btn" onclick="cotizarRapido('automatizacion_ia', 'analisis_datos_ia')">Cotizar</a>
+                    {% else %}
+                        <a href="/login?next=/" class="cta-btn">Inicia sesión para cotizar</a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
 
-        <div class="servicio-card">
-            <div class="icono">🤖</div>
-            <h3>Automatización con IA</h3>
-            <p>Automatización de procesos empresariales usando inteligencia artificial y Python.</p>
-            <div class="precio">Desde $250.000</div>
-            <a href="/" class="cta-btn">Cotizar</a>
-        </div>
+        <!-- Gestión de Datos -->
+        <div class="servicio-principal">
+            <div class="servicio-header">
+                <div class="icono">📊</div>
+                <div>
+                    <h2>Gestión de Datos</h2>
+                    <p class="precio-base">Tus datos organizados, limpios y listos para decidir</p>
+                </div>
+            </div>
+            <div class="sub-servicios-grid">
+                <div class="sub-servicio-card">
+                    <h3>📦 Migración y limpieza de datos</h3>
+                    <p>ETL/ELT profesional: migración entre sistemas, deduplicación, normalización, validación de calidad, mapeo de esquemas, migración cloud (AWS/GCP/Azure) y zero-downtime.</p>
+                    <div class="sub-precio">Desde $180.000</div>
+                    {% if current_user.is_authenticated %}
+                        <a href="/" class="cta-btn" onclick="cotizarRapido('gestion_datos', 'migracion_datos')">Cotizar</a>
+                    {% else %}
+                        <a href="/login?next=/" class="cta-btn">Inicia sesión para cotizar</a>
+                    {% endif %}
+                </div>
 
-        <div class="servicio-card">
-            <div class="icono">📊</div>
-            <h3>Gestión de Redes</h3>
-            <p>Administración completa de tus redes sociales con contenido optimizado.</p>
-            <div class="precio">Desde $200.000</div>
-            <a href="/" class="cta-btn">Cotizar</a>
-        </div>
+                <div class="sub-servicio-card">
+                    <h3>📊 Dashboards y reportes automatizados</h3>
+                    <p>Visualizaciones interactivas con Power BI/Tableau/Metabase/Grafana: KPIs en tiempo real, reportes programados, alertas automáticas, multi-tenant, embed en tu app.</p>
+                    <div class="sub-precio">Desde $220.000</div>
+                    {% if current_user.is_authenticated %}
+                        <a href="/" class="cta-btn" onclick="cotizarRapido('gestion_datos', 'dashboards_reportes')">Cotizar</a>
+                    {% else %}
+                        <a href="/login?next=/" class="cta-btn">Inicia sesión para cotizar</a>
+                    {% endif %}
+                </div>
 
-        <div class="servicio-card">
-            <div class="icono">🎨</div>
-            <h3>Diseño Gráfico</h3>
-            <p>Identidad visual, logotipos, banners y material publicitario de alta calidad.</p>
-            <div class="precio">Desde $100.000</div>
-            <a href="/" class="cta-btn">Cotizar</a>
-        </div>
-
-        <div class="servicio-card">
-            <div class="icono">🎥</div>
-            <h3>Producción Audiovisual</h3>
-            <p>Videos corporativos, contenido para redes y edición profesional.</p>
-            <div class="precio">Desde $180.000</div>
-            <a href="/" class="cta-btn">Cotizar</a>
+                <div class="sub-servicio-card">
+                    <h3>🗄️ Administración de bases de datos</h3>
+                    <p>DBA como servicio: diseño de arquitectura, optimización de queries, indexing, replicación, alta disponibilidad, disaster recovery, PostgreSQL/MySQL/MongoDB/Redis.</p>
+                    <div class="sub-precio">Desde $200.000</div>
+                    {% if current_user.is_authenticated %}
+                        <a href="/" class="cta-btn" onclick="cotizarRapido('gestion_datos', 'bases_datos_admin')">Cotizar</a>
+                    {% else %}
+                        <a href="/login?next=/" class="cta-btn">Inicia sesión para cotizar</a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
+
+    <script>
+        function cotizarRapido(servicio, subServicio) {
+            // Redirige al home con parámetros para pre-seleccionar
+            window.location.href = `/?servicio=${servicio}&sub=${subServicio}`;
+        }
+    </script>
 </body>
 </html>

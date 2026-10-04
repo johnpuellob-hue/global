@@ -123,6 +123,10 @@
             outline: none;
             border-color: #39FF14;
         }
+        .form-group input[readonly] {
+            background: #0a0a0a;
+            color: #39FF14;
+        }
         .btn-cotizar {
             width: 100%;
             padding: 14px;
@@ -139,6 +143,14 @@
         .btn-cotizar:hover {
             background: #fff;
             box-shadow: 0 0 20px #fff;
+        }
+        .nombre-usuario {
+            background: #1a1a1a;
+            border: 1px solid #39FF14;
+            color: #39FF14;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: bold;
         }
 
         /* Sección Proyectos */
@@ -176,6 +188,14 @@
         .proyecto-card p {
             color: #888;
             font-size: 0.9rem;
+        }
+
+        /* Sub-servicios hidden/show */
+        .sub-servicio-group {
+            display: none;
+        }
+        .sub-servicio-group.show {
+            display: block;
         }
 
         /* Footer */
@@ -222,28 +242,40 @@
             <h2>Genera tu Cotización</h2>
             <p class="subtitulo">Con inteligencia artificial</p>
             
-            <form action="/cotizar" method="POST">
+            <form action="/cotizar" method="POST" id="formCotizar">
+                {% if current_user.is_authenticated %}
+                <div class="form-group">
+                    <label>Tu nombre (automático)</label>
+                    <input type="text" class="nombre-usuario" value="{{ current_user.nombre }}" readonly>
+                    <input type="hidden" name="nombre" value="{{ current_user.nombre }}">
+                </div>
+                {% else %}
                 <div class="form-group">
                     <label>Nombre del Cliente</label>
                     <input type="text" name="nombre" placeholder="Tu nombre" required>
                 </div>
+                {% endif %}
 
                 <div class="form-group">
-                    <label>Servicio</label>
-                    <select id="servicio" name="servicio_id" onchange="calcularPrecio()">
+                    <label>Servicio Principal</label>
+                    <select id="servicio" name="servicio_id" onchange="actualizarSubServicios()" required>
                         <option value="">Selecciona un servicio</option>
-                        <option value="desarrollo_web">Desarrollo Web</option>
-                        <option value="marketing_digital">Marketing Digital</option>
-                        <option value="automatizacion_ia">Automatización con Python</option>
-                        <option value="gestion_redes">Gestión de Redes</option>
-                        <option value="diseno_grafico">Diseño Gráfico</option>
-                        <option value="produccion_audiovisual">Producción Audiovisual</option>
+                        <option value="desarrollo_web">🌐 Desarrollo Web</option>
+                        <option value="automatizacion_ia">🤖 Automatización con IA</option>
+                        <option value="gestion_datos">📊 Gestión de Datos</option>
+                    </select>
+                </div>
+
+                <div class="form-group sub-servicio-group" id="subServicioGroup">
+                    <label>Sub-servicio</label>
+                    <select id="subServicio" name="sub_servicio" onchange="calcularPrecio()" required disabled>
+                        <option value="">Primero selecciona un servicio</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label>Precio</label>
-                    <input type="text" id="total" name="total" placeholder="Precio" readonly style="background: #0a0a0a;">
+                    <input type="text" id="total" name="total" placeholder="Selecciona un sub-servicio" readonly>
                 </div>
 
                 <div class="form-group">
@@ -260,24 +292,24 @@
 
         <!-- Proyectos -->
         <div class="seccion-proyectos">
-            <h2> Nuestros Projetos</h2>
+            <h2>Nuestros Servicios Principales</h2>
             
             <div class="proyecto-card">
-                <div class="icono">📸</div>
-                <h3>Fotografía Profesional</h3>
-                <p>Captura de eventos y retrato</p>
+                <div class="icono">🌐</div>
+                <h3>Desarrollo Web</h3>
+                <p>Creación desde cero, mantenimiento y actualizaciones</p>
             </div>
 
             <div class="proyecto-card">
-                <div class="icono">💻</div>
-                <h3>Sistemas Web</h3>
-                <p>Desarrollo con Python y Flask</p>
+                <div class="icono">🤖</div>
+                <h3>Automatización con IA</h3>
+                <p>Procesos, chatbots y análisis de datos inteligentes</p>
             </div>
 
             <div class="proyecto-card">
-                <div class="icono">🎥</div>
-                <h3>Edición de Video</h3>
-                <p>Contenido para redes sociales</p>
+                <div class="icono">📊</div>
+                <h3>Gestión de Datos</h3>
+                <p>Migración, dashboards y administración de BD</p>
             </div>
         </div>
     </div>
@@ -287,18 +319,89 @@
     </footer>
 
     <script>
-        function calcularPrecio() {
-            const precios = {
-                "desarrollo_web": "$300.000",
-                "marketing_digital": "$150.000",
-                "automatizacion_ia": "$250.000",
-                "gestion_redes": "$200.000",
-                "diseno_grafico": "$100.000",
-                "produccion_audiovisual": "$180.000"
-            };
-            const servicio = document.getElementById("servicio").value;
-            document.getElementById("total").value = precios[servicio] || "";
+        const SUB_SERVICIOS = {
+            desarrollo_web: [
+                { value: 'creacion_sitio', label: '🌐 Creación de sitio web desde cero', precio: 300000 },
+                { value: 'mantenimiento_soporte', label: '🔧 Mantenimiento y soporte mensual', precio: 150000 },
+                { value: 'actualizacion_codigo', label: '🔄 Actualización y mejoras de código', precio: 200000 },
+            ],
+            automatizacion_ia: [
+                { value: 'automatizacion_procesos', label: '⚙️ Automatización de procesos empresariales', precio: 250000 },
+                { value: 'chatbots_asistentes', label: '💬 Chatbots y asistentes virtuales IA', precio: 200000 },
+                { value: 'analisis_datos_ia', label: '📈 Análisis de datos con IA/ML', precio: 300000 },
+            ],
+            gestion_datos: [
+                { value: 'migracion_datos', label: '📦 Migración y limpieza de datos', precio: 180000 },
+                { value: 'dashboards_reportes', label: '📊 Dashboards y reportes automatizados', precio: 220000 },
+                { value: 'bases_datos_admin', label: '🗄️ Administración de bases de datos', precio: 200000 },
+            ],
+        };
+
+        // Pre-selección desde URL params (ej: ?servicio=desarrollo_web&sub=creacion_sitio)
+        function preseleccionarDesdeURL() {
+            const params = new URLSearchParams(window.location.search);
+            const servicio = params.get('servicio');
+            const sub = params.get('sub');
+            
+            if (servicio) {
+                const servicioSelect = document.getElementById('servicio');
+                servicioSelect.value = servicio;
+                actualizarSubServicios();
+                
+                if (sub) {
+                    // Esperar a que se carguen las opciones
+                    setTimeout(() => {
+                        const subServicioSelect = document.getElementById('subServicio');
+                        subServicioSelect.value = sub;
+                        calcularPrecio();
+                    }, 100);
+                }
+            }
         }
+
+        function actualizarSubServicios() {
+            const servicioSelect = document.getElementById('servicio');
+            const subServicioSelect = document.getElementById('subServicio');
+            const subServicioGroup = document.getElementById('subServicioGroup');
+            const totalInput = document.getElementById('total');
+            
+            const servicio = servicioSelect.value;
+            
+            // Limpiar sub-servicios
+            subServicioSelect.innerHTML = '<option value="">Selecciona un sub-servicio</option>';
+            
+            if (servicio && SUB_SERVICIOS[servicio]) {
+                SUB_SERVICIOS[servicio].forEach(sub => {
+                    const option = document.createElement('option');
+                    option.value = sub.value;
+                    option.textContent = `${sub.label} - $${sub.precio.toLocaleString()}`;
+                    option.dataset.precio = sub.precio;
+                    subServicioSelect.appendChild(option);
+                });
+                subServicioSelect.disabled = false;
+                subServicioGroup.classList.add('show');
+                totalInput.value = '';
+            } else {
+                subServicioSelect.disabled = true;
+                subServicioGroup.classList.remove('show');
+                totalInput.value = '';
+            }
+        }
+
+        function calcularPrecio() {
+            const subServicioSelect = document.getElementById('subServicio');
+            const totalInput = document.getElementById('total');
+            
+            const selectedOption = subServicioSelect.options[subServicioSelect.selectedIndex];
+            if (selectedOption && selectedOption.dataset.precio) {
+                totalInput.value = '$' + parseInt(selectedOption.dataset.precio).toLocaleString();
+            } else {
+                totalInput.value = '';
+            }
+        }
+
+        // Ejecutar al cargar
+        document.addEventListener('DOMContentLoaded', preseleccionarDesdeURL);
     </script>
 </body>
 </html>
