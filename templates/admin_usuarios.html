@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Usuarios - G-Global Studios</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0a0a0a; color: #fff; line-height: 1.6; }
+        header { background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%); padding: 20px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ff4444; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: #ff4444; text-shadow: 0 0 10px #ff4444; }
+        nav a { color: #fff; text-decoration: none; margin: 0 10px; padding: 8px 15px; border-radius: 5px; transition: 0.3s; font-size: 0.9rem; }
+        nav a:hover { background: #ff4444; color: #000; }
+        nav a.active { background: #ff4444; color: #000; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        h1 { color: #ff4444; text-shadow: 0 0 15px #ff4444; text-transform: uppercase; margin-bottom: 30px; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; background: #111; border: 1px solid #222; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #222; }
+        th { background: #1a1a1a; color: #ff4444; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
+        tr:hover { background: #1a1a1a; }
+        tr:last-child td { border-bottom: none; }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+        .badge-admin { background: #ff4444; color: #000; }
+        .badge-user { background: #333; color: #888; }
+        .btn { padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 0.8rem; margin-right: 5px; transition: 0.3s; display: inline-block; border: none; cursor: pointer; }
+        .btn-danger { background: #ff4444; color: #000; }
+        .btn-danger:hover { background: #fff; box-shadow: 0 0 10px #fff; }
+        .btn-secondary { background: #39FF14; color: #000; }
+        .btn-secondary:hover { background: #fff; box-shadow: 0 0 10px #fff; }
+        .actions { white-space: nowrap; }
+        form { display: inline; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">G-GLOBAL STUDIOS - ADMIN</div>
+        <nav>
+            <a href="/admin">Dashboard</a>
+            <a href="/admin/usuarios" class="active">Usuarios</a>
+            <a href="/admin/cotizaciones">Cotizaciones</a>
+            <a href="/admin/mensajes">Mensajes</a>
+            <a href="/logout" style="background: #333; border: 1px solid #ff4444;">Cerrar Sesión</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1>Gestión de Usuarios</h1>
+        
+        <div class="table-container">
+            {% if usuarios %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Rol</th><th>Fecha Registro</th><th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in usuarios %}
+                    <tr>
+                        <td>#{{ u[0] }}</td>
+                        <td>{{ u[1] }}</td>
+                        <td>{{ u[2] }}</td>
+                        <td>{{ u[3] if u[3] else '-' }}</td>
+                        <td><span class="badge {% if u[4] %}badge-admin{% else %}badge-user{% endif %}">{% if u[4] %}Admin{% else %}Usuario{% endif %}</span></td>
+                        <td>{{ u[5] }}</td>
+                        <td class="actions">
+                            {% if u[0] != current_user.id %}
+                            <form method="POST" action="{{ url_for('admin_toggle_admin', user_id=u[0]) }}" onsubmit="return confirm('¿Cambiar rol de administrador?')">
+                                <button type="submit" class="btn {% if u[4] %}btn-danger{% else %}btn-secondary{% endif %}">
+                                    {% if u[4] %}Quitar Admin{% else %}Hacer Admin{% endif %}
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('admin_eliminar_usuario', user_id=u[0]) }}" onsubmit="return confirm('¿Eliminar usuario permanentemente?')">
+                                <button type="submit" class="btn btn-danger">Eliminar</button>
+                            </form>
+                            {% else %}
+                            <span style="color: #666; font-size: 0.8rem;">(Tú)</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="text-align: center; color: #666; padding: 40px;">No hay usuarios registrados</div>
+            {% endif %}
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <a href="/admin" class="btn btn-secondary">← Volver al Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>

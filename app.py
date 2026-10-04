@@ -97,6 +97,7 @@ def crear_db():
                        email TEXT UNIQUE NOT NULL,
                        password_hash TEXT NOT NULL,
                        telefono TEXT,
+                       is_admin INTEGER DEFAULT 0,
                        fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     cursor.execute('''CREATE TABLE IF NOT EXISTS ventas
                       (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -115,11 +116,16 @@ def crear_db():
                        fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        FOREIGN KEY (user_id) REFERENCES usuarios (id))''')
     
-    # Migración: agregar columna sub_servicio si no existe
-    try:
-        cursor.execute("ALTER TABLE ventas ADD COLUMN sub_servicio TEXT")
-    except sqlite3.OperationalError:
-        pass  # Ya existe
+    # Migraciones: agregar columnas si no existen
+    for col, col_type in [('sub_servicio', 'TEXT'), ('is_admin', 'INTEGER DEFAULT 0')]:
+        try:
+            cursor.execute(f"ALTER TABLE usuarios ADD COLUMN {col} {col_type}")
+        except sqlite3.OperationalError:
+            pass
+        try:
+            cursor.execute(f"ALTER TABLE ventas ADD COLUMN {col} {col_type}")
+        except sqlite3.OperationalError:
+            pass
     
     conexion.commit()
     conexion.close()
@@ -130,12 +136,13 @@ crear_db()
 
 # User model para Flask-Login
 class User(UserMixin):
-    def __init__(self, id, nombre, email, password_hash, telefono=None):
+    def __init__(self, id, nombre, email, password_hash, telefono=None, is_admin=False):
         self.id = id
         self.nombre = nombre
         self.email = email
         self.password_hash = password_hash
         self.telefono = telefono
+        self.is_admin = bool(is_admin)
 
     @staticmethod
     def get_by_id(user_id):
@@ -145,7 +152,7 @@ class User(UserMixin):
         row = cursor.fetchone()
         conexion.close()
         if row:
-            return User(row['id'], row['nombre'], row['email'], row['password_hash'], row['telefono'])
+            return User(row['id'], row['nombre'], row['email'], row['password_hash'], row['telefono'], row['is_admin'])
         return None
 
     @staticmethod
@@ -156,18 +163,18 @@ class User(UserMixin):
         row = cursor.fetchone()
         conexion.close()
         if row:
-            return User(row['id'], row['nombre'], row['email'], row['password_hash'], row['telefono'])
+            return User(row['id'], row['nombre'], row['email'], row['password_hash'], row['telefono'], row['is_admin'])
         return None
 
     @staticmethod
-    def create(nombre, email, password, telefono=None):
+    def create(nombre, email, password, telefono=None, is_admin=False):
         password_hash = generate_password_hash(password)
         conexion = get_db()
         cursor = conexion.cursor()
         try:
             cursor.execute(
-                "INSERT INTO usuarios (nombre, email, password_hash, telefono) VALUES (?, ?, ?, ?)",
-                (nombre, email, password_hash, telefono)
+                "INSERT INTO usuarios (nombre, email, password_hash, telefono, is_admin) VALUES (?, ?, ?, ?, ?)",
+                (nombre, email, password_hash, telefono, 1 if is_admin else 0)
             )
             conexion.commit()
             user_id = cursor.lastrowid
@@ -184,6 +191,18 @@ class User(UserMixin):
 @login_manager.user_loader
 def load_user(user_id):
     return User.get_by_id(int(user_id))
+
+
+# Decorador para rutas solo admin
+def admin_required(f):
+    from functools import wraps
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin:
+            flash('Acceso denegado. Se requieren permisos de administrador.', 'error')
+            return redirect(url_for('inicio'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 def generar_frase_ia(nombre, nombre_servicio):
@@ -482,6 +501,133 @@ def descargar_excel():
     nombre_archivo = os.path.join(BASE_DIR, "Reporte_G-Global_Studios.xlsx")
     df.to_excel(nombre_archivo, index=False)
     return send_file(nombre_archivo, as_attachment=True)
+
+
+# ==================== PANEL ADMIN ====================
+@app.route('/admin')
+@login_required
+@admin_required
+def admin_dashboard():
+    conexion = get_db()
+    cursor = conexion.cursor()
+    
+    # Estadísticas generales
+    cursor.execute("SELECT COUNT(*) FROM usuarios")
+    total_usuarios = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(*) FROM ventas")
+    total_cotizaciones = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COALESCE(SUM(total), 0) FROM ventas")
+    total_ingresos = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(*) FROM mensajes")
+    total_mensajes = cursor.fetchone()[0]
+    
+    # Últimos usuarios
+    cursor.execute("SELECT id, nombre, email, is_admin, fecha_registro FROM usuarios ORDER BY fecha_registro DESC LIMIT 10")
+    ultimos_usuarios = cursor.fetchall()
+    
+    # Últimas cotizaciones
+    cursor.execute("""SELECT v.id, v.nombre, v.servicio, v.sub_servicio, v.total, v.fecha, u.email 
+                      FROM ventas v 
+                      JOIN usuarios u ON v.user_id = u.id 
+                      ORDER BY v.fecha DESC LIMIT 10""")
+    ultimas_cotizaciones = cursor.fetchall()
+    
+    # Últimos mensajes
+    cursor.execute("""SELECT m.id, m.nombre, m.email, m.servicio, m.mensaje, m.fecha, u.email 
+                      FROM mensajes m 
+                      LEFT JOIN usuarios u ON m.user_id = u.id 
+                      ORDER BY m.fecha DESC LIMIT 10""")
+    ultimos_mensajes = cursor.fetchall()
+    
+    conexion.close()
+    
+    return render_template('admin.html',
+                           total_usuarios=total_usuarios,
+                           total_cotizaciones=total_cotizaciones,
+                           total_ingresos=total_ingresos,
+                           total_mensajes=total_mensajes,
+                           ultimos_usuarios=ultimos_usuarios,
+                           ultimas_cotizaciones=ultimas_cotizaciones,
+                           ultimos_mensajes=ultimos_mensajes)
+
+
+@app.route('/admin/usuarios')
+@login_required
+@admin_required
+def admin_usuarios():
+    conexion = get_db()
+    cursor = conexion.cursor()
+    cursor.execute("SELECT id, nombre, email, telefono, is_admin, fecha_registro FROM usuarios ORDER BY fecha_registro DESC")
+    usuarios = cursor.fetchall()
+    conexion.close()
+    return render_template('admin_usuarios.html', usuarios=usuarios)
+
+
+@app.route('/admin/cotizaciones')
+@login_required
+@admin_required
+def admin_cotizaciones():
+    conexion = get_db()
+    cursor = conexion.cursor()
+    cursor.execute("""SELECT v.id, v.nombre, v.servicio, v.sub_servicio, v.total, v.fecha, u.nombre as user_nombre, u.email as user_email 
+                      FROM ventas v 
+                      JOIN usuarios u ON v.user_id = u.id 
+                      ORDER BY v.fecha DESC""")
+    cotizaciones = cursor.fetchall()
+    conexion.close()
+    return render_template('admin_cotizaciones.html', cotizaciones=cotizaciones)
+
+
+@app.route('/admin/mensajes')
+@login_required
+@admin_required
+def admin_mensajes():
+    conexion = get_db()
+    cursor = conexion.cursor()
+    cursor.execute("""SELECT m.id, m.nombre, m.email, m.telefono, m.servicio, m.mensaje, m.fecha, u.nombre as user_nombre 
+                      FROM mensajes m 
+                      LEFT JOIN usuarios u ON m.user_id = u.id 
+                      ORDER BY m.fecha DESC""")
+    mensajes = cursor.fetchall()
+    conexion.close()
+    return render_template('admin_mensajes.html', mensajes=mensajes)
+
+
+@app.route('/admin/toggle_admin/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_toggle_admin(user_id):
+    if user_id == current_user.id:
+        flash('No puedes quitarte tus propios permisos de admin.', 'error')
+        return redirect(url_for('admin_usuarios'))
+    
+    conexion = get_db()
+    cursor = conexion.cursor()
+    cursor.execute("UPDATE usuarios SET is_admin = 1 - is_admin WHERE id = ?", (user_id,))
+    conexion.commit()
+    conexion.close()
+    flash('Permisos de administrador actualizados.', 'success')
+    return redirect(url_for('admin_usuarios'))
+
+
+@app.route('/admin/eliminar_usuario/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_eliminar_usuario(user_id):
+    if user_id == current_user.id:
+        flash('No puedes eliminarte a ti mismo.', 'error')
+        return redirect(url_for('admin_usuarios'))
+    
+    conexion = get_db()
+    cursor = conexion.cursor()
+    cursor.execute("DELETE FROM usuarios WHERE id = ?", (user_id,))
+    conexion.commit()
+    conexion.close()
+    flash('Usuario eliminado.', 'success')
+    return redirect(url_for('admin_usuarios'))
 
 
 if __name__ == '__main__':

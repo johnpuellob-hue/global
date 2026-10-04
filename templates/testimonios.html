@@ -127,6 +127,9 @@
             <a href="/contacto">Contacto</a>
             {% if current_user.is_authenticated %}
                 <span style="color: #39FF14; margin-right: 15px;">👤 {{ current_user.nombre }}</span>
+                {% if current_user.is_admin %}
+                    <a href="/admin" style="background: #ff4444; color: #000;">⚙️ Admin</a>
+                {% endif %}
                 <a href="/logout" style="background: #333; border: 1px solid #39FF14;">Cerrar Sesión</a>
             {% else %}
                 <a href="/login">Iniciar Sesión</a>
