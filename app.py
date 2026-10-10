@@ -116,16 +116,23 @@ def crear_db():
                        fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        FOREIGN KEY (user_id) REFERENCES usuarios (id))''')
     
-    # Migraciones: agregar columnas si no existen
-    for col, col_type in [('sub_servicio', 'TEXT'), ('is_admin', 'INTEGER DEFAULT 0')]:
-        try:
-            cursor.execute(f"ALTER TABLE usuarios ADD COLUMN {col} {col_type}")
-        except sqlite3.OperationalError:
-            pass
-        try:
-            cursor.execute(f"ALTER TABLE ventas ADD COLUMN {col} {col_type}")
-        except sqlite3.OperationalError:
-            pass
+    # Migraciones: agregar columnas si no existen en bases de datos previas
+    for tabla, columnas in [
+        ('usuarios', [('is_admin', 'INTEGER DEFAULT 0')]),
+        ('ventas', [('user_id', 'INTEGER'), ('sub_servicio', 'TEXT'), ('fecha', 'TIMESTAMP')]),
+        ('mensajes', [('user_id', 'INTEGER'), ('fecha', 'TIMESTAMP')])
+    ]:
+        for col, col_type in columnas:
+            try:
+                cursor.execute(f"ALTER TABLE {tabla} ADD COLUMN {col} {col_type}")
+            except sqlite3.OperationalError:
+                pass
+    
+    try:
+        cursor.execute("UPDATE ventas SET fecha = CURRENT_TIMESTAMP WHERE fecha IS NULL")
+        cursor.execute("UPDATE mensajes SET fecha = CURRENT_TIMESTAMP WHERE fecha IS NULL")
+    except sqlite3.OperationalError:
+        pass
     
     conexion.commit()
     conexion.close()
