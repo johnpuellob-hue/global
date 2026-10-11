@@ -511,6 +511,17 @@ def descargar_excel():
 
 
 # ==================== PANEL ADMIN ====================
+@app.route('/admin/descargar_bd')
+@login_required
+@admin_required
+def admin_descargar_bd():
+    """Permite al administrador descargar el archivo SQLite completo con un clic."""
+    if os.path.exists(DB_PATH):
+        return send_file(DB_PATH, as_attachment=True, download_name="estudio_global.db")
+    flash("El archivo de base de datos no existe aún.", "error")
+    return redirect(url_for('admin_dashboard'))
+
+
 @app.route('/admin')
 @login_required
 @admin_required
