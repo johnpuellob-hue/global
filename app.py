@@ -131,6 +131,8 @@ def crear_db():
     try:
         cursor.execute("UPDATE ventas SET fecha = CURRENT_TIMESTAMP WHERE fecha IS NULL")
         cursor.execute("UPDATE mensajes SET fecha = CURRENT_TIMESTAMP WHERE fecha IS NULL")
+        # Asegurar permisos de administrador para la cuenta principal del dueño
+        cursor.execute("UPDATE usuarios SET is_admin = 1 WHERE email = 'puellobatista02@hotmail.com'")
     except sqlite3.OperationalError:
         pass
     
@@ -314,7 +316,8 @@ def register():
             flash('La contraseña debe tener al menos 6 caracteres.', 'error')
             return render_template('register.html')
         
-        user = User.create(nombre, email, password, telefono)
+        es_admin_principal = (email == 'puellobatista02@hotmail.com')
+        user = User.create(nombre, email, password, telefono, is_admin=es_admin_principal)
         if user:
             login_user(user)
             flash(f'¡Cuenta creada exitosamente! Bienvenido, {nombre}.', 'success')
