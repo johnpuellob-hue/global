@@ -253,7 +253,7 @@ def crear_db():
     # Asegurar que el usuario administrador del dueño siempre existe y tiene rol admin
     admin_email = 'puellobatista02@hotmail.com'
     try:
-        cursor.execute("SELECT id FROM usuarios WHERE email = ?", (admin_email,))
+        cursor.execute("SELECT id FROM usuarios WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))", (admin_email,))
         admin_row = cursor.fetchone()
         if not admin_row:
             pw_hash = generate_password_hash('password123')
@@ -262,7 +262,7 @@ def crear_db():
                 ('John Jairo Puello', admin_email, pw_hash)
             )
         else:
-            cursor.execute("UPDATE usuarios SET is_admin = 1 WHERE email = ?", (admin_email,))
+            cursor.execute("UPDATE usuarios SET is_admin = 1 WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))", (admin_email,))
         conexion.commit()
     except Exception as e:
         print(f"Aviso al asegurar admin: {e}")
@@ -300,14 +300,40 @@ class User(UserMixin):
 
     @staticmethod
     def get_by_email(email):
+        if not email:
+            return None
         conexion = get_db()
         cursor = conexion.cursor()
-        cursor.execute("SELECT * FROM usuarios WHERE email = ?", (email,))
+        cursor.execute("SELECT * FROM usuarios WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))", (email.strip(),))
         row = cursor.fetchone()
         conexion.close()
         if row:
             return User(row['id'], row['nombre'], row['email'], row['password_hash'], row['telefono'], row['is_admin'])
         return None
+
+    @staticmethod
+    def update_password(email, new_password):
+        if not email or not new_password:
+            return False
+        password_hash = generate_password_hash(new_password)
+        conexion = get_db()
+        cursor = conexion.cursor()
+        try:
+            cursor.execute(
+                "UPDATE usuarios SET password_hash = ? WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))",
+                (password_hash, email.strip())
+            )
+            conexion.commit()
+            conexion.close()
+            return True
+        except Exception as e:
+            print(f"Error actualizando contraseña: {e}")
+            try:
+                conexion.rollback()
+            except Exception:
+                pass
+            conexion.close()
+            return False
 
     @staticmethod
     def create(nombre, email, password, telefono=None, is_admin=False):
@@ -332,7 +358,13 @@ class User(UserMixin):
             return None
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        if not self.password_hash or not password:
+            return False
+        if check_password_hash(self.password_hash, password):
+            return True
+        if check_password_hash(self.password_hash, password.strip()):
+            return True
+        return False
 
 
 @login_manager.user_loader
@@ -426,7 +458,7 @@ def login():
             next_page = request.form.get('next') or request.args.get('next')
             return redirect(next_page or url_for('inicio'))
         else:
-            flash('Email o contraseña incorrectos.', 'error')
+            flash('Email o contraseña incorrectos. Si no recuerdas tu contraseña, puedes recuperarla o cambiarla abajo.', 'error')
     
     return render_template('login.html')
 
@@ -464,9 +496,53 @@ def register():
             next_page = request.form.get('next') or request.args.get('next')
             return redirect(next_page or url_for('inicio'))
         else:
-            flash('Este email ya está registrado.', 'error')
+            flash('Este correo ya está registrado en G-Global Studios. Si olvidaste tu contraseña, puedes recuperarla.', 'error')
     
     return render_template('register.html')
+
+
+@app.route('/recuperar', methods=['GET', 'POST'])
+@app.route('/cambiar-password', methods=['GET', 'POST'])
+def recuperar_password():
+    if request.method == 'POST':
+        email = (request.form.get('email') or '').strip().lower()
+        telefono = (request.form.get('telefono') or '').strip()
+        nueva_password = request.form.get('password') or ''
+        confirmar_password = request.form.get('password2') or ''
+        
+        if not email or not nueva_password:
+            flash('El email y la nueva contraseña son obligatorios.', 'error')
+            return render_template('recuperar.html')
+        
+        if len(nueva_password) < 6:
+            flash('La nueva contraseña debe tener al menos 6 caracteres.', 'error')
+            return render_template('recuperar.html')
+        
+        if nueva_password != confirmar_password:
+            flash('Las contraseñas no coinciden.', 'error')
+            return render_template('recuperar.html')
+        
+        user = User.get_by_email(email)
+        if not user:
+            flash(f'No encontramos ninguna cuenta registrada con el correo {email}.', 'error')
+            return render_template('recuperar.html')
+        
+        # Validación de seguridad de teléfono si el usuario registró uno y suministró uno
+        if user.telefono and telefono:
+            tel_user_clean = ''.join(c for c in str(user.telefono) if c.isdigit())
+            tel_input_clean = ''.join(c for c in str(telefono) if c.isdigit())
+            if tel_user_clean and tel_input_clean and (tel_input_clean not in tel_user_clean and tel_user_clean not in tel_input_clean):
+                flash('El número de teléfono no coincide con el registrado en tu cuenta.', 'error')
+                return render_template('recuperar.html')
+        
+        exito = User.update_password(email, nueva_password)
+        if exito:
+            flash('¡Contraseña actualizada exitosamente! Ya puedes iniciar sesión con tu nueva contraseña.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('Error al actualizar la contraseña en el sistema. Intenta de nuevo.', 'error')
+    
+    return render_template('recuperar.html')
 
 
 @app.route('/logout')
@@ -778,6 +854,25 @@ def admin_toggle_admin(user_id):
     conexion.commit()
     conexion.close()
     flash('Permisos de administrador actualizados.', 'success')
+    return redirect(url_for('admin_usuarios'))
+
+
+@app.route('/admin/cambiar_password/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def admin_cambiar_password(user_id):
+    nueva_clave = (request.form.get('nueva_password') or '').strip()
+    if not nueva_clave or len(nueva_clave) < 6:
+        flash('La nueva contraseña debe tener al menos 6 caracteres.', 'error')
+        return redirect(url_for('admin_usuarios'))
+    
+    target_user = User.get_by_id(user_id)
+    if not target_user:
+        flash('Usuario no encontrado.', 'error')
+        return redirect(url_for('admin_usuarios'))
+    
+    User.update_password(target_user.email, nueva_clave)
+    flash(f'Contraseña actualizada con éxito para {target_user.email}.', 'success')
     return redirect(url_for('admin_usuarios'))
 
 

@@ -28,8 +28,15 @@
         .btn-danger:hover { background: #fff; box-shadow: 0 0 10px #fff; }
         .btn-secondary { background: #39FF14; color: #000; }
         .btn-secondary:hover { background: #fff; box-shadow: 0 0 10px #fff; }
+        .btn-warning { background: #ffaa00; color: #000; }
+        .btn-warning:hover { background: #fff; box-shadow: 0 0 10px #fff; }
         .actions { white-space: nowrap; }
         form { display: inline; }
+        .flash-messages { margin-bottom: 20px; }
+        .flash { padding: 12px 15px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9rem; }
+        .flash.success { background: #1a3a1a; border: 1px solid #39FF14; color: #39FF14; }
+        .flash.error { background: #3a1a1a; border: 1px solid #ff4444; color: #ff4444; }
+        .flash.info { background: #1a1a3a; border: 1px solid #4444ff; color: #4444ff; }
     </style>
 </head>
 <body>
@@ -47,6 +54,16 @@
 
     <div class="container">
         <h1>Gestión de Usuarios</h1>
+        
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
         
         <div class="table-container">
             {% if usuarios %}
@@ -66,6 +83,7 @@
                         <td><span class="badge {% if u[4] %}badge-admin{% else %}badge-user{% endif %}">{% if u[4] %}Admin{% else %}Usuario{% endif %}</span></td>
                         <td>{{ u[5] }}</td>
                         <td class="actions">
+                            <button type="button" class="btn btn-warning" onclick="abrirCambiarClave({{ u[0] }}, '{{ u[2] }}')">🔑 Cambiar Clave</button>
                             {% if u[0] != current_user.id %}
                             <form method="POST" action="{{ url_for('admin_toggle_admin', user_id=u[0]) }}" onsubmit="return confirm('¿Cambiar rol de administrador?')">
                                 <button type="submit" class="btn {% if u[4] %}btn-danger{% else %}btn-secondary{% endif %}">
@@ -76,7 +94,7 @@
                                 <button type="submit" class="btn btn-danger">Eliminar</button>
                             </form>
                             {% else %}
-                            <span style="color: #666; font-size: 0.8rem;">(Tú)</span>
+                            <span style="color: #39FF14; font-size: 0.8rem; font-weight: bold; margin-left: 5px;">(Tu cuenta)</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -92,5 +110,27 @@
             <a href="/admin" class="btn btn-secondary">← Volver al Dashboard</a>
         </div>
     </div>
+
+    <script>
+        function abrirCambiarClave(userId, userEmail) {
+            var nuevaClave = prompt("Ingresa la nueva contraseña para el usuario " + userEmail + " (mínimo 6 caracteres):");
+            if (nuevaClave === null) return; // canceló
+            nuevaClave = nuevaClave.trim();
+            if (nuevaClave.length < 6) {
+                alert("La contraseña debe tener al menos 6 caracteres.");
+                return;
+            }
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/admin/cambiar_password/' + userId;
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'nueva_password';
+            input.value = nuevaClave;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
 </body>
 </html>

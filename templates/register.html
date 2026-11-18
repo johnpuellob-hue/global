@@ -18,7 +18,7 @@
         }
         .auth-container {
             width: 100%;
-            max-width: 420px;
+            max-width: 440px;
         }
         .auth-card {
             background: #050505;
@@ -29,7 +29,7 @@
         }
         .logo {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
         .logo h1 {
             color: #39FF14;
@@ -39,7 +39,7 @@
         }
         .logo p { color: #888; font-size: 0.9rem; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .form-group { margin-bottom: 20px; }
+        .form-group { margin-bottom: 18px; }
         .form-group label {
             display: block;
             margin-bottom: 8px;
@@ -48,7 +48,7 @@
         }
         .form-group input {
             width: 100%;
-            padding: 14px;
+            padding: 13px;
             border-radius: 8px;
             border: 1px solid #333;
             background: #111;
@@ -59,6 +59,16 @@
             outline: none;
             border-color: #39FF14;
         }
+        .show-pw {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 6px;
+            font-size: 0.8rem;
+            color: #888;
+            cursor: pointer;
+        }
+        .show-pw input { width: 14px; height: 14px; accent-color: #39FF14; }
         .btn-submit {
             width: 100%;
             padding: 14px;
@@ -70,6 +80,7 @@
             font-size: 1rem;
             cursor: pointer;
             transition: 0.3s;
+            margin-top: 10px;
         }
         .btn-submit:hover { background: #fff; box-shadow: 0 0 20px #fff; }
         .auth-footer {
@@ -77,6 +88,7 @@
             margin-top: 25px;
             color: #888;
             font-size: 0.9rem;
+            line-height: 1.8;
         }
         .auth-footer a { color: #39FF14; text-decoration: none; }
         .auth-footer a:hover { text-decoration: underline; }
@@ -109,7 +121,7 @@
                 <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
                 <div class="form-group">
                     <label>Nombre completo</label>
-                    <input type="text" name="nombre" placeholder="Tu nombre completo" required autocomplete="name">
+                    <input type="text" name="nombre" placeholder="Tu nombre completo" required autocomplete="name" autofocus>
                 </div>
                 
                 <div class="form-group">
@@ -125,12 +137,18 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Contraseña</label>
-                        <input type="password" name="password" placeholder="Mínimo 6 caracteres" required autocomplete="new-password" minlength="6">
+                        <input type="password" id="regPw1" name="password" placeholder="Mínimo 6 caracteres" required autocomplete="new-password" minlength="6">
                     </div>
                     <div class="form-group">
                         <label>Confirmar contraseña</label>
-                        <input type="password" name="password2" placeholder="Repite la contraseña" required autocomplete="new-password" minlength="6">
+                        <input type="password" id="regPw2" name="password2" placeholder="Repite la contraseña" required autocomplete="new-password" minlength="6">
                     </div>
+                </div>
+                
+                <div style="margin-bottom: 10px;">
+                    <label class="show-pw">
+                        <input type="checkbox" id="toggleRegPw" onchange="toggleRegPasswords()"> Mostrar contraseñas
+                    </label>
                 </div>
                 
                 <button type="submit" class="btn-submit">CREAR CUENTA</button>
@@ -138,8 +156,20 @@
             
             <div class="auth-footer">
                 <p>¿Ya tienes cuenta? <a href="{{ url_for('login', next=request.args.get('next', '')) }}">Inicia sesión</a></p>
+                <p>¿Olvidaste tu contraseña? <a href="{{ url_for('recuperar_password') }}">Recuperar contraseña</a></p>
+                <p style="margin-top: 15px;"><a href="{{ url_for('inicio') }}" style="color: #666;">🌐 Volver al sitio principal</a></p>
             </div>
         </div>
     </div>
+
+    <script>
+        function toggleRegPasswords() {
+            var p1 = document.getElementById('regPw1');
+            var p2 = document.getElementById('regPw2');
+            var isChecked = document.getElementById('toggleRegPw').checked;
+            p1.type = isChecked ? 'text' : 'password';
+            p2.type = isChecked ? 'text' : 'password';
+        }
+    </script>
 </body>
 </html>
