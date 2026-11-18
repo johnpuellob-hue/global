@@ -1,3 +1,4 @@
+from datetime import timedelta
 import html
 import os
 import random
@@ -10,9 +11,102 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'g-global-studios-secret-key-change-in-production')
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=60)
+app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=60)
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "estudio_global.db")
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+def is_postgres():
+    return bool(DATABASE_URL and (DATABASE_URL.startswith('postgres://') or DATABASE_URL.startswith('postgresql://')))
+
+class DBRow:
+    """Permite acceder a los datos de la fila como dict row['col'] o tupla row[0]."""
+    def __init__(self, data, description):
+        self._data = data
+        self._desc = [d[0] for d in description] if description else []
+        self._dict = {k: v for k, v in zip(self._desc, data)} if description else {}
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self._data[key]
+        return self._dict[key]
+
+    def get(self, key, default=None):
+        return self._dict.get(key, default)
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def __len__(self):
+        return len(self._data)
+
+    def keys(self):
+        return self._dict.keys()
+
+class DBCursor:
+    def __init__(self, cursor, is_pg=False):
+        self.cursor = cursor
+        self.is_pg = is_pg
+
+    def execute(self, sql, params=None):
+        if self.is_pg:
+            sql = sql.replace('?', '%s')
+        if params is not None:
+            return self.cursor.execute(sql, params)
+        return self.cursor.execute(sql)
+
+    def fetchone(self):
+        row = self.cursor.fetchone()
+        if row is None:
+            return None
+        if self.is_pg:
+            return DBRow(row, self.cursor.description)
+        return row
+
+    def fetchall(self):
+        rows = self.cursor.fetchall()
+        if self.is_pg:
+            desc = self.cursor.description
+            return [DBRow(r, desc) for r in rows]
+        return rows
+
+    @property
+    def rowcount(self):
+        return self.cursor.rowcount
+
+class DBConnection:
+    def __init__(self, raw_conn, is_pg=False):
+        self.raw_conn = raw_conn
+        self.is_pg = is_pg
+
+    def cursor(self):
+        return DBCursor(self.raw_conn.cursor(), self.is_pg)
+
+    def commit(self):
+        self.raw_conn.commit()
+
+    def rollback(self):
+        self.raw_conn.rollback()
+
+    def close(self):
+        self.raw_conn.close()
+
+def get_db():
+    if is_postgres():
+        import psycopg2
+        url = DATABASE_URL
+        if url.startswith('postgres://'):
+            url = url.replace('postgres://', 'postgresql://', 1)
+        raw = psycopg2.connect(url)
+        return DBConnection(raw, is_pg=True)
+    else:
+        raw = sqlite3.connect(DB_PATH)
+        raw.row_factory = sqlite3.Row
+        return DBConnection(raw, is_pg=False)
 
 # Flask-Login setup
 login_manager = LoginManager()
@@ -81,63 +175,103 @@ def normalizar_servicio(valor):
     return None, "Servicio General", 0
 
 
-def get_db():
-    conexion = sqlite3.connect(DB_PATH)
-    conexion.row_factory = sqlite3.Row
-    return conexion
-
-
 # Función para crear la base de datos (ventas + mensajes + usuarios)
 def crear_db():
     conexion = get_db()
     cursor = conexion.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios
-                      (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                       nombre TEXT NOT NULL,
-                       email TEXT UNIQUE NOT NULL,
-                       password_hash TEXT NOT NULL,
-                       telefono TEXT,
-                       is_admin INTEGER DEFAULT 0,
-                       fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS ventas
-                      (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                       user_id INTEGER,
-                       nombre TEXT,
-                       servicio TEXT,
-                       sub_servicio TEXT,
-                       total REAL,
-                       fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                       FOREIGN KEY (user_id) REFERENCES usuarios (id))''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS mensajes
-                      (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                       user_id INTEGER,
-                       nombre TEXT, email TEXT, telefono TEXT,
-                       servicio TEXT, mensaje TEXT,
-                       fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                       FOREIGN KEY (user_id) REFERENCES usuarios (id))''')
     
-    # Migraciones: agregar columnas si no existen en bases de datos previas
-    for tabla, columnas in [
-        ('usuarios', [('is_admin', 'INTEGER DEFAULT 0')]),
-        ('ventas', [('user_id', 'INTEGER'), ('sub_servicio', 'TEXT'), ('fecha', 'TIMESTAMP')]),
-        ('mensajes', [('user_id', 'INTEGER'), ('fecha', 'TIMESTAMP')])
-    ]:
-        for col, col_type in columnas:
-            try:
-                cursor.execute(f"ALTER TABLE {tabla} ADD COLUMN {col} {col_type}")
-            except sqlite3.OperationalError:
-                pass
-    
+    if conexion.is_pg:
+        cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (
+            id SERIAL PRIMARY KEY,
+            nombre TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            telefono TEXT,
+            is_admin INTEGER DEFAULT 0,
+            fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS ventas (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES usuarios (id),
+            nombre TEXT,
+            servicio TEXT,
+            sub_servicio TEXT,
+            total REAL,
+            fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS mensajes (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES usuarios (id),
+            nombre TEXT, email TEXT, telefono TEXT,
+            servicio TEXT, mensaje TEXT,
+            fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
+    else:
+        cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios
+                          (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                           nombre TEXT NOT NULL,
+                           email TEXT UNIQUE NOT NULL,
+                           password_hash TEXT NOT NULL,
+                           telefono TEXT,
+                           is_admin INTEGER DEFAULT 0,
+                           fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS ventas
+                          (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                           user_id INTEGER,
+                           nombre TEXT,
+                           servicio TEXT,
+                           sub_servicio TEXT,
+                           total REAL,
+                           fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                           FOREIGN KEY (user_id) REFERENCES usuarios (id))''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS mensajes
+                          (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                           user_id INTEGER,
+                           nombre TEXT, email TEXT, telefono TEXT,
+                           servicio TEXT, mensaje TEXT,
+                           fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                           FOREIGN KEY (user_id) REFERENCES usuarios (id))''')
+        
+        # Migraciones: agregar columnas si no existen en bases de datos previas
+        for tabla, columnas in [
+            ('usuarios', [('is_admin', 'INTEGER DEFAULT 0')]),
+            ('ventas', [('user_id', 'INTEGER'), ('sub_servicio', 'TEXT'), ('fecha', 'TIMESTAMP')]),
+            ('mensajes', [('user_id', 'INTEGER'), ('fecha', 'TIMESTAMP')])
+        ]:
+            for col, col_type in columnas:
+                try:
+                    cursor.execute(f"ALTER TABLE {tabla} ADD COLUMN {col} {col_type}")
+                except Exception:
+                    pass
+        
+        try:
+            cursor.execute("UPDATE ventas SET fecha = CURRENT_TIMESTAMP WHERE fecha IS NULL")
+            cursor.execute("UPDATE mensajes SET fecha = CURRENT_TIMESTAMP WHERE fecha IS NULL")
+        except Exception:
+            pass
+
+    # Asegurar que el usuario administrador del dueño siempre existe y tiene rol admin
+    admin_email = 'puellobatista02@hotmail.com'
     try:
-        cursor.execute("UPDATE ventas SET fecha = CURRENT_TIMESTAMP WHERE fecha IS NULL")
-        cursor.execute("UPDATE mensajes SET fecha = CURRENT_TIMESTAMP WHERE fecha IS NULL")
-        # Asegurar permisos de administrador para la cuenta principal del dueño
-        cursor.execute("UPDATE usuarios SET is_admin = 1 WHERE email = 'puellobatista02@hotmail.com'")
-    except sqlite3.OperationalError:
-        pass
-    
-    conexion.commit()
-    conexion.close()
+        cursor.execute("SELECT id FROM usuarios WHERE email = ?", (admin_email,))
+        admin_row = cursor.fetchone()
+        if not admin_row:
+            pw_hash = generate_password_hash('password123')
+            cursor.execute(
+                "INSERT INTO usuarios (nombre, email, password_hash, is_admin) VALUES (?, ?, ?, 1)",
+                ('John Jairo Puello', admin_email, pw_hash)
+            )
+        else:
+            cursor.execute("UPDATE usuarios SET is_admin = 1 WHERE email = ?", (admin_email,))
+        conexion.commit()
+    except Exception as e:
+        print(f"Aviso al asegurar admin: {e}")
+        try:
+            conexion.rollback()
+        except Exception:
+            pass
+    finally:
+        conexion.close()
 
 
 crear_db()
@@ -186,10 +320,14 @@ class User(UserMixin):
                 (nombre, email, password_hash, telefono, 1 if is_admin else 0)
             )
             conexion.commit()
-            user_id = cursor.lastrowid
             conexion.close()
-            return User.get_by_id(user_id)
-        except sqlite3.IntegrityError:
+            return User.get_by_email(email)
+        except Exception as e:
+            print(f"Error creando usuario: {e}")
+            try:
+                conexion.rollback()
+            except Exception:
+                pass
             conexion.close()
             return None
 
@@ -274,7 +412,7 @@ def login():
     if request.method == 'POST':
         email = (request.form.get('email') or '').strip().lower()
         password = request.form.get('password') or ''
-        remember = request.form.get('remember') == 'on'
+        remember = request.form.get('remember', 'on') == 'on'
         
         if not email or not password:
             flash('Email y contraseña son obligatorios.', 'error')
@@ -282,9 +420,10 @@ def login():
         
         user = User.get_by_email(email)
         if user and user.check_password(password):
+            session.permanent = True
             login_user(user, remember=remember)
             flash(f'¡Bienvenido de nuevo, {user.nombre}!', 'success')
-            next_page = request.args.get('next')
+            next_page = request.form.get('next') or request.args.get('next')
             return redirect(next_page or url_for('inicio'))
         else:
             flash('Email o contraseña incorrectos.', 'error')
@@ -319,9 +458,11 @@ def register():
         es_admin_principal = (email == 'puellobatista02@hotmail.com')
         user = User.create(nombre, email, password, telefono, is_admin=es_admin_principal)
         if user:
-            login_user(user)
+            session.permanent = True
+            login_user(user, remember=True)
             flash(f'¡Cuenta creada exitosamente! Bienvenido, {nombre}.', 'success')
-            return redirect(url_for('inicio'))
+            next_page = request.form.get('next') or request.args.get('next')
+            return redirect(next_page or url_for('inicio'))
         else:
             flash('Este email ya está registrado.', 'error')
     
@@ -506,7 +647,10 @@ def eliminar(id):
 @login_required
 def descargar_excel():
     conexion = get_db()
-    df = pd.read_sql_query("SELECT nombre, servicio, sub_servicio, total, fecha FROM ventas WHERE user_id = ?", conexion, params=(current_user.id,))
+    sql = "SELECT nombre, servicio, sub_servicio, total, fecha FROM ventas WHERE user_id = ?"
+    if conexion.is_pg:
+        sql = sql.replace('?', '%s')
+    df = pd.read_sql_query(sql, conexion.raw_conn, params=(current_user.id,))
     conexion.close()
     nombre_archivo = os.path.join(BASE_DIR, "Reporte_G-Global_Studios.xlsx")
     df.to_excel(nombre_archivo, index=False)
@@ -518,7 +662,10 @@ def descargar_excel():
 @login_required
 @admin_required
 def admin_descargar_bd():
-    """Permite al administrador descargar el archivo SQLite completo con un clic."""
+    """Permite al administrador descargar la base de datos."""
+    if is_postgres():
+        flash("La base de datos está guardada permanentemente en la nube (PostgreSQL).", "info")
+        return redirect(url_for('admin_dashboard'))
     if os.path.exists(DB_PATH):
         return send_file(DB_PATH, as_attachment=True, download_name="estudio_global.db")
     flash("El archivo de base de datos no existe aún.", "error")

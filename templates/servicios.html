@@ -16,31 +16,68 @@
             color: #fff;
             line-height: 1.6;
         }
+        /* Header */
         header {
             background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-            padding: 20px 50px;
+            padding: 15px 35px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 2px solid #39FF14;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
         .logo {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: bold;
             color: #39FF14;
             text-shadow: 0 0 10px #39FF14;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         nav a {
             color: #fff;
             text-decoration: none;
-            margin: 0 15px;
-            padding: 10px 20px;
+            padding: 8px 14px;
             border-radius: 5px;
             transition: 0.3s;
+            font-size: 0.9rem;
+            white-space: nowrap;
         }
         nav a:hover {
             background: #39FF14;
             color: #000;
+        }
+        nav a.active {
+            background: #222;
+            color: #39FF14;
+            border: 1px solid #39FF14;
+        }
+        .nav-user {
+            color: #39FF14;
+            font-size: 0.9rem;
+            padding: 0 8px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        @media (max-width: 900px) {
+            header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            nav {
+                justify-content: center;
+            }
         }
         .hero {
             text-align: center;
@@ -142,15 +179,15 @@
 </head>
 <body>
     <header>
-        <div class="logo">G-GLOBAL STUDIOS</div>
+        <a href="/" class="logo">G-GLOBAL STUDIOS</a>
         <nav>
             <a href="/">Inicio</a>
-            <a href="/servicios">Servicios</a>
+            <a href="/servicios" class="active">Servicios</a>
             <a href="/nosotros">Nosotros</a>
             <a href="/testimonios">Testimonios</a>
             <a href="/contacto">Contacto</a>
             {% if current_user.is_authenticated %}
-                <span style="color: #39FF14; margin-right: 15px;">👤 {{ current_user.nombre }}</span>
+                <span class="nav-user">👤 {{ current_user.nombre }}</span>
                 {% if current_user.is_admin %}
                     <a href="/admin" style="background: #ff4444; color: #000;">⚙️ Admin</a>
                 {% endif %}
@@ -183,9 +220,9 @@
                     <p>Diseño y desarrollo completo de sitios web modernos, responsivos y optimizados. Incluye: arquitectura, frontend (React/Vue), backend (Python/Node), base de datos, deploy y testing.</p>
                     <div class="sub-precio">Desde $300.000</div>
                     {% if current_user.is_authenticated %}
-                        <a href="/" class="cta-btn" onclick="cotizarRapido('desarrollo_web', 'creacion_sitio')">Cotizar</a>
+                        <a href="/?servicio=desarrollo_web&sub=creacion_sitio#formCotizar" class="cta-btn">Cotizar</a>
                     {% else %}
-                        <a href="/login?next=/" class="cta-btn">Inicia sesión para cotizar</a>
+                        <a href="/login?next=%2F%3Fservicio%3Ddesarrollo_web%26sub%3Dcreacion_sitio%23formCotizar" class="cta-btn">Inicia sesión para cotizar</a>
                     {% endif %}
                 </div>
 
@@ -194,9 +231,9 @@
                     <p>Soporte técnico continuo: actualizaciones de seguridad, monitoreo de uptime, backups automáticos, corrección de bugs, optimización de rendimiento y consultoría técnica prioritaria.</p>
                     <div class="sub-precio">$150.000 / mes</div>
                     {% if current_user.is_authenticated %}
-                        <a href="/" class="cta-btn" onclick="cotizarRapido('desarrollo_web', 'mantenimiento_soporte')">Cotizar</a>
+                        <a href="/?servicio=desarrollo_web&sub=mantenimiento_soporte#formCotizar" class="cta-btn">Cotizar</a>
                     {% else %}
-                        <a href="/login?next=/" class="cta-btn">Inicia sesión para cotizar</a>
+                        <a href="/login?next=%2F%3Fservicio%3Ddesarrollo_web%26sub%3Dmantenimiento_soporte%23formCotizar" class="cta-btn">Inicia sesión para cotizar</a>
                     {% endif %}
                 </div>
 
@@ -205,9 +242,9 @@
                     <p>Refactoring, migración a nuevas tecnologías, optimización de performance, implementación de nuevas features, code review y deuda técnica. Ideal para proyectos legacy.</p>
                     <div class="sub-precio">Desde $200.000</div>
                     {% if current_user.is_authenticated %}
-                        <a href="/" class="cta-btn" onclick="cotizarRapido('desarrollo_web', 'actualizacion_codigo')">Cotizar</a>
+                        <a href="/?servicio=desarrollo_web&sub=actualizacion_codigo#formCotizar" class="cta-btn">Cotizar</a>
                     {% else %}
-                        <a href="/login?next=/" class="cta-btn">Inicia sesión para cotizar</a>
+                        <a href="/login?next=%2F%3Fservicio%3Ddesarrollo_web%26sub%3Dactualizacion_codigo%23formCotizar" class="cta-btn">Inicia sesión para cotizar</a>
                     {% endif %}
                 </div>
             </div>
@@ -228,9 +265,9 @@
                     <p>Identificamos tareas repetitivas y las automatizamos con Python + IA: procesamiento de documentos, flujos de trabajo, integración de APIs, RPA, web scraping inteligente y reportes automáticos.</p>
                     <div class="sub-precio">Desde $250.000</div>
                     {% if current_user.is_authenticated %}
-                        <a href="/" class="cta-btn" onclick="cotizarRapido('automatizacion_ia', 'automatizacion_procesos')">Cotizar</a>
+                        <a href="/?servicio=automatizacion_ia&sub=automatizacion_procesos#formCotizar" class="cta-btn">Cotizar</a>
                     {% else %}
-                        <a href="/login?next=/" class="cta-btn">Inicia sesión para cotizar</a>
+                        <a href="/login?next=%2F%3Fservicio%3Dautomatizacion_ia%26sub%3Dautomatizacion_procesos%23formCotizar" class="cta-btn">Inicia sesión para cotizar</a>
                     {% endif %}
                 </div>
 
@@ -239,9 +276,9 @@
                     <p>Desarrollo de chatbots conversacionales con GPT/Claude: atención al cliente 24/7, calificador de leads, asistente interno, integración WhatsApp/Slack/Teams, base de conocimiento propia.</p>
                     <div class="sub-precio">Desde $200.000</div>
                     {% if current_user.is_authenticated %}
-                        <a href="/" class="cta-btn" onclick="cotizarRapido('automatizacion_ia', 'chatbots_asistentes')">Cotizar</a>
+                        <a href="/?servicio=automatizacion_ia&sub=chatbots_asistentes#formCotizar" class="cta-btn">Cotizar</a>
                     {% else %}
-                        <a href="/login?next=/" class="cta-btn">Inicia sesión para cotizar</a>
+                        <a href="/login?next=%2F%3Fservicio%3Dautomatizacion_ia%26sub%3Dchatbots_asistentes%23formCotizar" class="cta-btn">Inicia sesión para cotizar</a>
                     {% endif %}
                 </div>
 
@@ -250,9 +287,9 @@
                     <p>Modelos predictivos, detección de anomalías, segmentación de clientes, forecasting, NLP para análisis de texto, computer vision, MLOps y despliegue de modelos en producción.</p>
                     <div class="sub-precio">Desde $300.000</div>
                     {% if current_user.is_authenticated %}
-                        <a href="/" class="cta-btn" onclick="cotizarRapido('automatizacion_ia', 'analisis_datos_ia')">Cotizar</a>
+                        <a href="/?servicio=automatizacion_ia&sub=analisis_datos_ia#formCotizar" class="cta-btn">Cotizar</a>
                     {% else %}
-                        <a href="/login?next=/" class="cta-btn">Inicia sesión para cotizar</a>
+                        <a href="/login?next=%2F%3Fservicio%3Dautomatizacion_ia%26sub%3Danalisis_datos_ia%23formCotizar" class="cta-btn">Inicia sesión para cotizar</a>
                     {% endif %}
                 </div>
             </div>
@@ -273,9 +310,9 @@
                     <p>ETL/ELT profesional: migración entre sistemas, deduplicación, normalización, validación de calidad, mapeo de esquemas, migración cloud (AWS/GCP/Azure) y zero-downtime.</p>
                     <div class="sub-precio">Desde $180.000</div>
                     {% if current_user.is_authenticated %}
-                        <a href="/" class="cta-btn" onclick="cotizarRapido('gestion_datos', 'migracion_datos')">Cotizar</a>
+                        <a href="/?servicio=gestion_datos&sub=migracion_datos#formCotizar" class="cta-btn">Cotizar</a>
                     {% else %}
-                        <a href="/login?next=/" class="cta-btn">Inicia sesión para cotizar</a>
+                        <a href="/login?next=%2F%3Fservicio%3Dgestion_datos%26sub%3Dmigracion_datos%23formCotizar" class="cta-btn">Inicia sesión para cotizar</a>
                     {% endif %}
                 </div>
 
@@ -284,9 +321,9 @@
                     <p>Visualizaciones interactivas con Power BI/Tableau/Metabase/Grafana: KPIs en tiempo real, reportes programados, alertas automáticas, multi-tenant, embed en tu app.</p>
                     <div class="sub-precio">Desde $220.000</div>
                     {% if current_user.is_authenticated %}
-                        <a href="/" class="cta-btn" onclick="cotizarRapido('gestion_datos', 'dashboards_reportes')">Cotizar</a>
+                        <a href="/?servicio=gestion_datos&sub=dashboards_reportes#formCotizar" class="cta-btn">Cotizar</a>
                     {% else %}
-                        <a href="/login?next=/" class="cta-btn">Inicia sesión para cotizar</a>
+                        <a href="/login?next=%2F%3Fservicio%3Dgestion_datos%26sub%3Ddashboards_reportes%23formCotizar" class="cta-btn">Inicia sesión para cotizar</a>
                     {% endif %}
                 </div>
 
@@ -295,9 +332,9 @@
                     <p>DBA como servicio: diseño de arquitectura, optimización de queries, indexing, replicación, alta disponibilidad, disaster recovery, PostgreSQL/MySQL/MongoDB/Redis.</p>
                     <div class="sub-precio">Desde $200.000</div>
                     {% if current_user.is_authenticated %}
-                        <a href="/" class="cta-btn" onclick="cotizarRapido('gestion_datos', 'bases_datos_admin')">Cotizar</a>
+                        <a href="/?servicio=gestion_datos&sub=bases_datos_admin#formCotizar" class="cta-btn">Cotizar</a>
                     {% else %}
-                        <a href="/login?next=/" class="cta-btn">Inicia sesión para cotizar</a>
+                        <a href="/login?next=%2F%3Fservicio%3Dgestion_datos%26sub%3Dbases_datos_admin%23formCotizar" class="cta-btn">Inicia sesión para cotizar</a>
                     {% endif %}
                 </div>
             </div>
@@ -306,8 +343,7 @@
 
     <script>
         function cotizarRapido(servicio, subServicio) {
-            // Redirige al home con parámetros para pre-seleccionar
-            window.location.href = `/?servicio=${servicio}&sub=${subServicio}`;
+            window.location.href = `/?servicio=${servicio}&sub=${subServicio}#formCotizar`;
         }
     </script>
 </body>

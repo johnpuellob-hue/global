@@ -126,7 +126,7 @@
                 </div>
                 
                 <div class="checkbox-group">
-                    <input type="checkbox" name="remember" id="remember">
+                    <input type="checkbox" name="remember" id="remember" checked>
                     <label for="remember">Recordarme</label>
                 </div>
                 
@@ -134,7 +134,7 @@
             </form>
             
             <div class="auth-footer">
-                <p>¿No tienes cuenta? <a href="{{ url_for('register') }}">Regístrate aquí</a></p>
+                <p>¿No tienes cuenta? <a href="{{ url_for('register', next=request.args.get('next', '')) }}">Regístrate aquí</a></p>
             </div>
         </div>
     </div>

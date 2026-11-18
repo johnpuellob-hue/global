@@ -106,6 +106,7 @@
             </div>
             
             <form method="POST" action="{{ url_for('register') }}">
+                <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
                 <div class="form-group">
                     <label>Nombre completo</label>
                     <input type="text" name="nombre" placeholder="Tu nombre completo" required autocomplete="name">
@@ -136,7 +137,7 @@
             </form>
             
             <div class="auth-footer">
-                <p>¿Ya tienes cuenta? <a href="{{ url_for('login') }}">Inicia sesión</a></p>
+                <p>¿Ya tienes cuenta? <a href="{{ url_for('login', next=request.args.get('next', '')) }}">Inicia sesión</a></p>
             </div>
         </div>
     </div>

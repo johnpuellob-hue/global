@@ -1,3 +1,9 @@
+databases:
+  - name: estudio-global-db
+    databaseName: estudio_global
+    user: global_user
+    plan: free
+
 services:
   - type: web
     name: g-global-studios
@@ -7,4 +13,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: estudio-global-db
+          property: connectionString
     autoDeploy: true

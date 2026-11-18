@@ -8,15 +8,61 @@
         body { background: #0a0a0a; color: #fff; font-family: 'Segoe UI', sans-serif; }
         header {
             background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-            padding: 20px 50px;
+            padding: 15px 35px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 2px solid #39FF14;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .logo { font-size: 1.5rem; font-weight: bold; color: #39FF14; text-shadow: 0 0 10px #39FF14; }
-        nav a { color: #fff; text-decoration: none; margin: 0 15px; padding: 10px 20px; border-radius: 5px; transition: 0.3s; }
-        nav a:hover { background: #39FF14; color: #000; }
+        .logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #39FF14;
+            text-shadow: 0 0 10px #39FF14;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 5px;
+            transition: 0.3s;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        nav a:hover {
+            background: #39FF14;
+            color: #000;
+        }
+        .nav-user {
+            color: #39FF14;
+            font-size: 0.9rem;
+            padding: 0 8px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        @media (max-width: 900px) {
+            header {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            nav {
+                justify-content: center;
+            }
+        }
         .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
         h1 { color: #39FF14; text-shadow: 0 0 15px #39FF14; text-transform: uppercase; margin-bottom: 30px; }
         .mensaje-card {
@@ -38,7 +84,7 @@
 </head>
 <body>
     <header>
-        <div class="logo">G-GLOBAL STUDIOS</div>
+        <a href="/" class="logo">G-GLOBAL STUDIOS</a>
         <nav>
             <a href="/">Inicio</a>
             <a href="/servicios">Servicios</a>
@@ -46,7 +92,10 @@
             <a href="/testimonios">Testimonios</a>
             <a href="/contacto">Contacto</a>
             {% if current_user.is_authenticated %}
-                <span style="color: #39FF14; margin-right: 15px;">👤 {{ current_user.nombre }}</span>
+                <span class="nav-user">👤 {{ current_user.nombre }}</span>
+                {% if current_user.is_admin %}
+                    <a href="/admin" style="background: #ff4444; color: #000;">⚙️ Admin</a>
+                {% endif %}
                 <a href="/logout" style="background: #333; border: 1px solid #39FF14;">Cerrar Sesión</a>
             {% else %}
                 <a href="/login">Iniciar Sesión</a>
